@@ -1,0 +1,341 @@
+---
+title: Modelle
+sidebarTitle: Modelle
+description: Optimieren Sie Stagehand mit LLMs für Leistung, Kosten und Zuverlässigkeit
+---
+
+Stagehand nutzt Large Language Models (LLMs), um Webseiten zu verstehen, Aktionen zu planen und mit komplexen Oberflächen zu interagieren. Die Wahl des LLMs beeinflusst die Genauigkeit, Geschwindigkeit und Kosten Ihrer Automatisierung maßgeblich.
+
+<Card title="Modellbewertung" href="https://www.stagehand.dev/evals" icon="paper-plane">
+  Ausführliche Informationen zur Modellauswahl finden Sie auf unserer Seite zur Modellbewertung.
+</Card>
+
+<div id="why-llm-choice-matters">
+  ## Warum die Wahl des LLMs wichtig ist
+</div>
+
+- **Genauigkeit**: Bessere Modelle ermöglichen zuverlässigere Elementerkennung und Aktionsplanung
+- **Geschwindigkeit**: Schnellere Modelle verringern die Latenz der Automatisierung
+- **Kosten**: Verschiedene Anbieter haben unterschiedliche Preismodelle
+- **Zuverlässigkeit**: Unterstützung für strukturierte Ausgaben sorgt für konsistentes Automatisierungsverhalten
+
+<Tip>
+  Weitere Details zur Auswahl des richtigen Modells finden Sie auf unserer Seite zur [Model Evaluation](https://www.stagehand.dev/evals).
+</Tip>
+
+<Warning>
+  Kleine Modelle mit **Ollama** tun sich schwer mit konsistenten strukturierten Ausgaben. Obwohl technisch unterstützt, empfehlen wir sie nicht für produktive Stagehand‑Workflows.
+</Warning>
+
+<div id="environment-variables-setup">
+  ## Einrichten von Umgebungsvariablen
+</div>
+
+Richte deine API-Schlüssel ein, bevor du Stagehand konfigurierst:
+
+<CodeGroup>
+  ```bash .env
+  # Wähle einen oder mehrere Anbieter aus
+  OPENAI_API_KEY=your_openai_key_here
+  ANTHROPIC_API_KEY=your_anthropic_key_here
+  GOOGLE_API_KEY=your_google_key_here
+  GROQ_API_KEY=your_groq_key_here
+  ```
+</CodeGroup>
+
+<div id="supported-providers">
+  ## Unterstützte Anbieter
+</div>
+
+Stagehand unterstützt die führenden LLM‑Anbieter mit Unterstützung für strukturierte Ausgaben:
+
+<div id="production-ready-providers">
+  ### Produktionsreife Anbieter
+</div>
+
+| Anbieter | Beste Modelle | Stärken | Anwendungsfall |
+|----------|---------------|---------|----------------|
+| **OpenAI** | `gpt-4.1`, `gpt-4.1-mini` | Hohe Genauigkeit, zuverlässig | Produktion, komplexe Websites |
+| **Anthropic** | `claude-3-7-sonnet-latest` | Hervorragende Begründungsfähigkeit | Komplexe Automatisierungsaufgaben |
+| **Google** | `gemini-2.5-flash`, `gemini-2.5-pro` | Schnell, kosteneffizient | Automatisierung mit hohem Durchsatz |
+
+<div id="additional-providers">
+  ### Zusätzliche Anbieter
+</div>
+
+<Expandable title="Weitere Anbieter">
+  - **Groq** - `llama-3.3-70b-versatile` (Gut für latenz-/geschwindigkeitskritische Anwendungen)
+  - **xAI** - `grok-beta` (Gut für komplexes Schlussfolgern)
+  - **Azure** - Enterprise‑OpenAI‑Bereitstellung
+  - **Cerebras** - Hochgeschwindigkeits‑Inference
+  - **TogetherAI** - Open‑Source‑Modelle
+  - **Mistral** - `mixtral-8x7b-32768` (Europäische Option)
+  - **DeepSeek** - Kosten­effiziente Alternative
+  - **Perplexity** - Echtzeit‑Webdaten
+  - **Ollama** - Lokale Bereitstellung (begrenzte Genauigkeit)
+  - **Run any model included in AI SDK** - Unterstützte Modelle finden Sie im [Vercel AI SDK](https://sdk.vercel.ai/providers/ai-sdk-providers) (Folgen Sie der Anleitung [hier](#vercel-ai-sdk), um loszulegen.)
+</Expandable>
+
+<div id="basic-configuration">
+  ## Basis­konfiguration
+</div>
+
+<div id="model-name-format">
+  ### Format des Modellnamens
+</div>
+
+Stagehand verwendet zur Modellspezifikation das Format `provider/model-name`.
+
+**Beispiele:**
+
+- OpenAI: `openai/gpt-4.1`
+- Anthropic: `anthropic/claude-3-7-sonnet-latest`
+- Google: `google/gemini-2.5-flash` (empfohlen)
+
+<div id="quick-start-examples">
+  ### Schnellstartbeispiele
+</div>
+
+<Tabs>
+  <Tab title="Google (empfohlen)">
+    <CodeGroup>
+      ```typescript TypeScript
+      import { Stagehand } from "@browserbasehq/stagehand";
+
+      const stagehand = new Stagehand({
+        modelName: "google/gemini-2.5-flash",
+        modelClientOptions: {
+          apiKey: process.env.GOOGLE_API_KEY,
+        },
+      });
+      ```
+
+      ```python Python
+      import os
+      from stagehand import Stagehand
+
+      stagehand = Stagehand(
+          model_name="google/gemini-2.5-flash",
+          model_api_key=os.getenv("GOOGLE_API_KEY")
+      )
+      ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="OpenAI">
+    <CodeGroup>
+      ```typescript TypeScript
+      import { Stagehand } from "@browserbasehq/stagehand";
+
+      const stagehand = new Stagehand({
+        modelName: "openai/gpt-4.1",
+        modelClientOptions: {
+          apiKey: process.env.OPENAI_API_KEY,
+        },
+      });
+      ```
+
+      ```python Python
+      import os
+      from stagehand import Stagehand
+
+      stagehand = Stagehand(
+          model_name="openai/gpt-4.1",
+          model_api_key=os.getenv("OPENAI_API_KEY")
+      )
+      ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Anthropic">
+    <CodeGroup>
+      ```typescript TypeScript
+      import { Stagehand } from "@browserbasehq/stagehand";
+
+      const stagehand = new Stagehand({
+        modelName: "anthropic/claude-3-7-sonnet-latest",
+        modelClientOptions: {
+          apiKey: process.env.ANTHROPIC_API_KEY,
+        },
+      });
+      ```
+
+      ```python Python
+      import os
+      from stagehand import Stagehand
+
+      stagehand = Stagehand(
+          model_name="anthropic/claude-3-7-sonnet-latest",
+          model_api_key=os.getenv("ANTHROPIC_API_KEY")
+      )
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+<div id="custom-llm-integration">
+  ## Benutzerdefinierte LLM-Integration
+</div>
+
+<Note>
+  Benutzerdefinierte LLMs werden derzeit nur in TypeScript unterstützt.
+</Note>
+
+Integrieren Sie beliebige LLMs mit Stagehand über benutzerdefinierte Clients. Einzige Voraussetzung ist die **Unterstützung für strukturierten Output**, um ein konsistentes Automationsverhalten sicherzustellen.
+
+<div id="vercel-ai-sdk">
+  ### Vercel AI SDK
+</div>
+
+Das [Vercel AI SDK](https://sdk.vercel.ai/providers/ai-sdk-providers) ist eine beliebte Bibliothek zur Interaktion mit LLMs. Sie können jeden vom Vercel AI SDK unterstützten Provider verwenden, um einen Client für Ihr Modell zu erstellen, **sofern dieser strukturierte Ausgaben unterstützt**.
+
+Das Vercel AI SDK bietet Provider für OpenAI, Anthropic und Google sowie Unterstützung für **Amazon Bedrock** und **Azure OpenAI**.
+
+Für den Einstieg installieren Sie das Paket `ai` sowie den gewünschten Provider. Um beispielsweise Amazon Bedrock zu nutzen, installieren Sie das Paket `@ai-sdk/amazon-bedrock`.
+
+Verwenden Sie außerdem den [Vercel AI SDK External Client](https://github.com/browserbase/stagehand/blob/main/examples/external_clients/aisdk.ts) als Vorlage, um einen Client für Ihr Modell zu erstellen.
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install ai @ai-sdk/amazon-bedrock
+    ```
+  </Tab>
+
+  <Tab title="pnpm">
+    ```bash
+    pnpm install ai @ai-sdk/amazon-bedrock
+    ```
+  </Tab>
+
+  <Tab title="yarn">
+    ```bash
+    yarn add ai @ai-sdk/amazon-bedrock
+    ```
+  </Tab>
+</Tabs>
+
+Für den Einstieg können Sie den [Vercel AI SDK External Client](https://github.com/browserbase/stagehand/blob/84f810b4631291307a32a47addad7e26e9c1deb3/examples/external_clients/aisdk.ts) als Vorlage verwenden, um einen Client für Ihr Modell zu erstellen.
+
+```ts
+// Install/import the provider you want to use.
+// For example, to use OpenAI, import `openai` from @ai-sdk/openai
+import { bedrock } from "@ai-sdk/amazon-bedrock";
+import { AISdkClient } from "./external_clients/aisdk";
+
+const stagehand = new Stagehand({
+  llmClient: new AISdkClient({
+	model: bedrock("anthropic.claude-3-7-sonnet-20250219-v1:0"),
+  }),
+});
+```
+
+<div id="troubleshooting">
+  ## Problembehandlung
+</div>
+
+<div id="common-issues">
+  ### Häufige Probleme
+</div>
+
+<AccordionGroup>
+  <Accordion title="Modell unterstützt keine strukturierten Ausgaben">
+    **Fehler**: `Model does not support structured outputs`
+
+    **Lösung**:
+    Verwenden Sie Modelle, die Function Calling/strukturierte Ausgaben unterstützen. Die Mindestanforderungen sind:
+
+    - Das Modell muss JSON/strukturierte Ausgaben unterstützen
+    - Das Modell muss über starke Reasoning-Fähigkeiten verfügen
+    - Das Modell muss komplexe Anweisungen verarbeiten können
+
+    Verwenden Sie bei jedem Anbieter die neuesten Modelle, die diese Anforderungen erfüllen. Beispiele:
+
+    - **OpenAI**: GPT-4-Serie oder neuer
+    - **Anthropic**: Claude-3-Serie oder neuer
+    - **Google**: Gemini-2-Serie oder neuer
+    - **Andere Anbieter**: Neueste Modelle mit Unterstützung für strukturierte Ausgaben
+
+    **Hinweis**: Vermeiden Sie Basissprachmodelle ohne Unterstützung für strukturierte Ausgaben oder ohne Fine-Tuning für das Befolgen von Anweisungen. Im Zweifel sehen Sie auf unserer Seite [Model Evaluation](https://www.stagehand.dev/evals) nach, um aktuelle Empfehlungen zu erhalten.
+  </Accordion>
+
+  <Accordion title="Authentifizierungsfehler">
+    **Fehler**: `Invalid API key` oder `Unauthorized`
+
+    **Lösung**:
+
+    - Überprüfen Sie, ob Ihre Umgebungsvariablen korrekt gesetzt sind
+    - Prüfen Sie Berechtigungen und Kontingente des API-Schlüssels
+    - Stellen Sie sicher, dass Sie den richtigen API-Schlüssel für den jeweiligen Anbieter verwenden
+    - Für Anthropic: Stellen Sie sicher, dass Sie Zugriff auf die Claude-API haben
+  </Accordion>
+
+  <Accordion title="Inkonsistente Automatisierungsergebnisse">
+    **Symptome**: Aktionen funktionieren manchmal, schlagen aber zu anderen Zeiten fehl
+
+    **Ursachen & Lösungen**:
+
+    - **Schwache Modelle**: Verwenden Sie leistungsfähigere Modelle – prüfen Sie unsere Seite [Model Evaluation](https://www.stagehand.dev/evals) für aktuelle Empfehlungen
+    - **Hohe Temperatur**: Setzen Sie die Temperatur auf 0 für deterministische Ausgaben
+    - **Komplexe Seiten**: Wechseln Sie zu Modellen mit höheren Genauigkeitswerten auf unserer Seite [Model Evaluation](https://www.stagehand.dev/evals)
+    - **Ratenbegrenzungen**: Implementieren Sie Retry-Logik mit exponentiellem Backoff
+    - **Kontextgrenzen**: Reduzieren Sie die Seitenkomplexität oder verwenden Sie Modelle mit größeren Kontextfenstern
+    - **Klarheit der Prompts**: Stellen Sie sicher, dass Ihre Automatisierungsanweisungen klar und präzise sind
+  </Accordion>
+
+  <Accordion title="Langsame Performance">
+    **Problem**: Die Automatisierung benötigt zu lange für Antworten
+
+    **Lösungen**:
+
+    - **Schnelle Modelle verwenden**: Wählen Sie auf Geschwindigkeit optimierte Modelle
+      - Jedes Modell mit \< 1 s Antwortzeit
+      - Modelle mit „fast“- oder „flash“-Varianten
+    - **Einstellungen optimieren**:
+      - Verwenden Sie `verbose: 0`, um den Tokenverbrauch zu minimieren
+      - Setzen Sie die Temperatur auf 0 für die schnellste Verarbeitung
+      - Halten Sie die maximale Tokenanzahl so niedrig wie möglich
+    - **Lokale Bereitstellung erwägen**: Lokale Modelle können die geringste Latenz bieten
+    - **Batch-Operationen**: Fassen Sie mehrere Aktionen nach Möglichkeit zusammen
+  </Accordion>
+
+  <Accordion title="Hohe Kosten">
+    **Problem**: Die LLM-Nutzung ist zu teuer
+
+    **Strategien zur Kostenoptimierung**:
+
+    1. **Auf kosteneffiziente Modelle wechseln**:
+       - Prüfen Sie unsere Seite [Model Evaluation](https://www.stagehand.dev/evals) für aktuelle Kosten-/Leistungsbenchmarks
+       - Wählen Sie Modelle mit geringeren Kosten pro Token, die dennoch die Genauigkeitsanforderungen erfüllen
+       - Erwägen Sie auf Geschwindigkeit optimierte Modelle, um die Gesamtlaufzeitkosten zu senken
+    2. **Tokenverbrauch optimieren**:
+       - Setzen Sie `verbose: 0`, um Logging-Overhead zu reduzieren
+       - Verwenden Sie prägnante Prompts und begrenzen Sie die Antwortlänge
+    3. **Smarter Model-Choice**: Starten Sie mit günstigeren Modellen und greifen Sie nur bei Bedarf auf Premium-Modelle zurück
+    4. **Antworten cachen**: Implementieren Sie LLM-Response-Caching für wiederkehrende Automatisierungsmuster
+    5. **Nutzung überwachen**: Richten Sie Abrechnungswarnungen ein und verfolgen Sie die Kosten pro Automatisierungslauf
+    6. **Batch-Verarbeitung**: Verarbeiten Sie mehrere ähnliche Aufgaben gemeinsam
+  </Accordion>
+</AccordionGroup>
+
+<div id="next-steps">
+  ### Nächste Schritte
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Modelle auswählen" href="https://www.stagehand.dev/evals" icon="robot">
+    Besuchen Sie unsere Seite zur Modellauswertung
+  </Card>
+
+  <Card title="Modelle testen" href="/de/configuration/evals" icon="flask-vial">
+    Bewerten Sie die Leistung für Ihre spezifischen Anwendungsfälle in unserem Leitfaden zur Modellauswertung
+  </Card>
+
+  <Card title="Kosten nachverfolgen" href="/de/configuration/observability" icon="chart-line">
+    Überwachen Sie den Tokenverbrauch und richten Sie Warnmeldungen mit unseren Observability‑Tools ein
+  </Card>
+
+  <Card title="Ergebnisse cachen" href="/de/best-practices/caching" icon="database">
+    Speichern Sie bewährte Muster mit unserem Caching‑Leitfaden
+  </Card>
+</CardGroup>

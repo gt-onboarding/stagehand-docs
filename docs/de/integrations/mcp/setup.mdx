@@ -1,0 +1,207 @@
+---
+title: "Browserbase MCP-Server einrichten"
+sidebarTitle: "Einrichten"
+description: "Fügen Sie den Browserbase MCP-Server zu Claude hinzu"
+---
+
+<div id="quick-installation">
+  ## Schnellinstallation
+</div>
+
+<Card title="Mit Cursor installieren" icon="arrow-pointer" href="cursor://anysphere.cursor-deeplink/mcp/install?name=browserbase&config=eyJjb21tYW5kIjoibnB4IEBicm93c2VyYmFzZWhxL21jcCIsImVudiI6eyJCUk9XU0VSQkFTRV9BUElfS0VZIjoiIiwiQlJPV1NFUkJBU0VfUFJPSkVDVF9JRCI6IiIsIkdFTUlOSV9BUElfS0VZIjoiIn19">
+Ein-Klick-Installation direkt in Cursor mit vorkonfigurierten Einstellungen
+</Card>
+
+Wir unterstützen mehrere Transportmethoden für unseren MCP-Server: STDIO und SHTTP. Wir empfehlen, SHTTP mit unserer gehosteten Remote-URL zu verwenden, um die volle Serverkapazität auszuschöpfen.
+
+<div id="prerequisites">
+  ## Voraussetzungen
+</div>
+
+<Steps>
+<Step title="Rufen Sie Ihre Browserbase-Zugangsdaten ab">
+Rufen Sie Ihren Browserbase‑API‑Schlüssel und Ihre Projekt‑ID im [Browserbase‑Dashboard](https://www.browserbase.com/overview) ab.
+
+<Frame>
+<img src="/images/quickstart/api-key.png" alt="Einstellungen für Browserbase‑API‑Schlüssel und Projekt‑ID" />
+</Frame>
+
+Kopieren Sie anschließend Ihren API‑Schlüssel und die Projekt‑ID direkt aus dem Eingabefeld.
+</Step>
+</Steps>
+
+<div id="installation-methods">
+  ## Installationsmethoden
+</div>
+
+<Tabs>
+<Tab title="Remote-URL (SHTTP)">
+
+Rufe [smithery.ai](https://smithery.ai/server/@browserbasehq/mcp-browserbase) auf und gib deine API-Schlüssel sowie die Konfiguration ein, um eine remote gehostete URL zu erhalten.
+
+![Smithery](../../images/mcp/smithery.jpg)
+
+<CodeGroup>
+```json Smithery
+{
+  "mcpServers": {
+    "browserbase": {
+      "url": "your-smithery-url.com"
+    }
+  }
+}
+```
+</CodeGroup>
+
+Wenn du unseren remote gehosteten Server verwendest, stellen wir die LLM-Kosten für Gemini bereit, das [leistungsstärkste Modell](https://www.stagehand.dev/evals) in [Stagehand](https://www.stagehand.dev).
+
+</Tab>
+
+<Tab title="NPM-Paket (STDIO)">
+Der einfachste Weg, lokal zu starten, ist die Verwendung unseres NPM-Pakets.
+
+<Note>
+Wenn du ein anderes Modell verwenden möchtest, musst du den Modelnamen und die Schlüssel in den Args übergeben. Mehr Infos [hier](https://docs.browserbase.com/integrations/mcp/configuration).
+</Note>
+
+<Steps>
+<Step title="Zur MCP-Konfiguration hinzufügen">
+Öffne deine MCP-Konfigurations-JSON und füge den Browserbase-Server hinzu:
+
+<CodeGroup>
+```json Claude Desktop
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": ["@browserbasehq/mcp-server-browserbase"],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+</CodeGroup>
+</Step>
+
+<Step title="MCP-Client neu starten">
+<Check>
+Das war’s! Lade deinen MCP-Client neu und Claude kann Browserbase verwenden.
+</Check>
+</Step>
+</Steps>
+</Tab>
+
+<Tab title="Lokale Entwicklung">
+Für lokale Entwicklung oder Anpassungen kannst du den Server lokal ausführen.
+
+<Steps>
+<Step title="Klonen und Build">
+```bash
+# Clone the Repo
+git clone https://github.com/browserbase/mcp-server-browserbase.git
+cd mcp-server-browserbase
+
+# Install the dependencies and build the project
+npm install && npm run build
+```
+</Step>
+
+<Step title="Transportmethode wählen">
+Du kannst lokal entweder über STDIO oder Streamable HTTP (SHTTP) ausführen.
+
+<Tabs>
+<Tab title="STDIO">
+Füge Folgendes zu deiner MCP-Konfigurations-JSON-Datei hinzu:
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "node",
+      "args": ["/path/to/mcp-server-browserbase/cli.js"],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+</Tab>
+
+<Tab title="SHTTP (Self-hosted)">
+Starte zunächst den Server:
+
+```bash
+node cli.js --port 8931
+```
+
+Füge anschließend dies zu deiner MCP-Konfigurations-JSON-Datei hinzu:
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "url": "http://localhost:8931/mcp",
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+</Tab>
+</Tabs>
+</Step>
+
+<Step title="Client neu starten">
+<Check>
+Lade deinen MCP-Client neu – dann bist du startklar!
+</Check>
+</Step>
+</Steps>
+</Tab>
+</Tabs>
+
+<div id="verify-installation">
+  ## Installation überprüfen
+</div>
+
+<Steps>
+<Step title="Claude‑Client neu starten">
+Starte/aktualisiere deine Claude‑Client‑App und du solltest die Tools sehen, wenn du auf das 🔨‑Symbol klickst.
+</Step>
+
+<Step title="Integration testen">
+Beginne mit der Nutzung unseres MCP‑Servers, indem du Claude bittest, zu einer beliebigen Seite zu navigieren, und sieh dir deinen Browserbase‑Browser in Aktion auf dem [Dashboard](https://www.browserbase.com/sessions) an.
+
+<Tip>
+Frag Claude zum Beispiel: „Navigiere zu google.com und mach einen Screenshot.“
+</Tip>
+</Step>
+</Steps>
+
+<div id="further-reading">
+  ## Weiterführende Informationen
+</div>
+
+<CardGroup cols={3}>
+<Card title="Model Context Protocol (MCP) Docs" icon="book" href="https://modelcontextprotocol.io/introduction">
+Erfahren Sie mehr über das MCP‑Protokoll
+</Card>
+
+<Card title="Browserbase Documentation" icon="globe" href="https://docs.browserbase.com">
+Entdecken Sie die Funktionen und Möglichkeiten von Browserbase
+</Card>
+
+<Card title="Support" icon="headset" href="mailto:support@browserbase.com">
+Holen Sie sich Hilfe von unserem Support‑Team
+</Card>
+</CardGroup>

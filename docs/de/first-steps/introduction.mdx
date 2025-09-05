@@ -1,0 +1,145 @@
+---
+title: Einführung in Stagehand
+sidebarTitle: Einführung
+description: Entwickler nutzen Stagehand, um das Web zuverlässig zu automatisieren.
+---
+
+Stagehand ist ein Browser-Automatisierungsframework, mit dem sich Webbrowser per natürlicher Sprache und Code steuern lassen. Durch die Kombination der Leistungsfähigkeit von KI mit der Präzision von Code macht Stagehand Webautomatisierung flexibel, wartbar und wirklich zuverlässig.
+
+<div id="the-problem-with-browser-automation">
+  ## Das Problem mit der Browser-Automatisierung
+</div>
+
+Traditionelle Frameworks wie Playwright und Puppeteer zwingen dich, fragile Skripte zu schreiben, die bei jeder UI-Änderung zerbrechen. Web-Agents versprechen, das mit KI zu lösen, liefern dich aber unberechenbarem Verhalten aus.
+
+**Du steckst zwischen zwei schlechten Optionen fest:**
+
+- **Zu fragil**: Klassische Selektoren brechen, sobald sich Websites ändern
+- **Zu agentisch**: KI-Agents sind unvorhersehbar und kaum zu debuggen
+
+<div id="enter-stagehand">
+  ## Lernen Sie Stagehand kennen
+</div>
+
+Stagehand verbindet das Beste aus beiden Welten mit vier leistungsstarken Primitiven, mit denen Sie exakt steuern, wie viel KI Sie einsetzen:
+
+<CardGroup cols={2}>
+  <Card title="Act" icon="play" href="/de/basics/act">
+    Aktionen in natürlicher Sprache ausführen
+  </Card>
+
+  <Card title="Extract" icon="database" href="/de/basics/extract">
+    Strukturierte Daten per Schema auslesen
+  </Card>
+
+  <Card title="Observe" icon="eye" href="/de/basics/observe">
+    Verfügbare Aktionen auf jeder Seite erkennen
+  </Card>
+
+  <Card title="Agent" icon="robot" href="/de/basics/agent">
+    Ganze Workflows eigenständig automatisieren
+  </Card>
+</CardGroup>
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Act - Execute natural language actions
+  await page.act("click the login button");
+
+  // Extract - Pull structured data
+  const { price } = await page.extract({
+    schema: z.object({ price: z.number() })
+  });
+
+  // Observe - Discover available actions
+  const actions = await page.observe("find submit buttons");
+
+  // Agent - Automate entire workflows
+  const agent = stagehand.agent({
+      provider: "anthropic",
+      model: "claude-sonnet-4-20250514",
+      options: {
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      },
+  })
+  await agent.execute("apply for this job");
+  ```
+
+  ```python Python
+  # Act - Execute natural language actions
+  await page.act("click the login button")
+
+  # Extract - Pull structured data
+  result = await page.extract(
+    schema={"price": float}
+  )
+
+  # Observe - Discover available actions
+  actions = await page.observe("find submit buttons")
+
+  # Agent - Automate entire workflows
+  await agent.execute("apply for this job")
+  ```
+</CodeGroup>
+
+<div id="why-developers-choose-stagehand">
+  ## Warum Entwickler sich für Stagehand entscheiden
+</div>
+
+- **Präzise Kontrolle**: Kombinieren Sie KI‑gestützte Aktionen mit deterministischem Code. Sie entscheiden genau, wie viel KI Sie einsetzen.
+
+- **Wirklich reproduzierbar**: Aktionen exakt aufzeichnen und wiedergeben. Kein „Bei mir hat’s funktioniert“ mehr bei Browser‑Automatisierungen.
+
+- **Wartbar im großen Maßstab**: Ein Skript kann mehrere Websites automatisieren. Wenn sich Websites ändern, passen sich Ihre Automatisierungen an.
+
+- **Komponierbare Tools**: Wählen Sie Ihren Automatisierungsgrad mit act(), extract(), observe() und agent().
+
+<div id="built-for-modern-development">
+  ## Für moderne Entwicklung gebaut
+</div>
+
+Stagehand ist für Entwickler konzipiert, die produktionsreife Browser‑Automatisierungen und KI‑Agents mit zuverlässigem Webzugriff erstellen.
+
+<AccordionGroup>
+  <Accordion title="Volle Playwright-Interop">
+    Nutzen Sie jede Playwright-API zusammen mit Stagehand. Sie sind nie an unsere Abstraktionen gebunden.
+  </Accordion>
+
+  <Accordion title="TypeScript- & Python-SDKs">
+    Erstklassige Unterstützung für beide Ökosysteme mit Typsicherheit und IDE-Autovervollständigung.
+  </Accordion>
+
+  <Accordion title="Funktioniert überall">
+    Kompatibel mit allen Chromium-basierten Browsern: Chrome, Edge, Arc, Brave und mehr.
+  </Accordion>
+
+  <Accordion title="Von Browserbase entwickelt">
+    Entwickelt und gepflegt vom Team hinter Enterprise‑Browser‑Infrastruktur.
+  </Accordion>
+</AccordionGroup>
+
+<div id="get-started-in-60-seconds">
+  ## In 60 Sekunden loslegen
+</div>
+
+<Info>
+  **Profi-Tipp**: Für beste Ergebnisse empfehlen wir, Stagehand mit [Browserbase](https://www.browserbase.com) für eine zuverlässige Cloud-Browser-Infrastruktur zu verwenden.
+</Info>
+
+<CardGroup cols={2}>
+  <Card title="Schnellstart" icon="rocket" href="/de/first-steps/quickstart">
+    Erstellen Sie Ihre erste Automation in unter einer Minute
+  </Card>
+
+  <Card title="Director ausprobieren" icon="wand-magic-sparkles" href="https://www.director.ai">
+    Stagehand-Skripte mit KI generieren
+  </Card>
+
+  <Card title="Beispiele ansehen" icon="code" href="https://github.com/browserbase/stagehand/tree/main/examples">
+    Praxisnahe Automationsbeispiele ansehen
+  </Card>
+
+  <Card title="Discord beitreten" icon="discord" href="https://discord.gg/stagehand">
+    Hilfe von der Community erhalten
+  </Card>
+</CardGroup>

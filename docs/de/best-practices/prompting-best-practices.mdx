@@ -1,0 +1,531 @@
+---
+title: Best Practices für Prompting
+description: "Effektive Prompts für zuverlässige Stagehand‑Automatisierung verfassen"
+---
+
+Gute Prompts machen Stagehand zuverlässig. Schlechte Prompts führen zu Ausfällen. So erstellen Sie Prompts, die konsistent funktionieren.
+
+<div id="act-method">
+  ## act()-Methode
+</div>
+
+Verwende `act()` für einzelne Aktionen auf Webseiten. Jede Aktion sollte klar und präzise sein.
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – einzelne, spezifische Aktionen
+await page.act("click the 'Add to Cart' button");
+await page.act("type 'user@example.com' into the email field");
+
+// Schlecht – mehrere Aktionen kombiniert
+await page.act("fill out the form and submit it");
+await page.act("login with credentials and navigate to dashboard");
+```
+
+```python Python
+# Gut – einzelne, spezifische Aktionen
+await page.act("click the 'Add to Cart' button")
+await page.act("type 'user@example.com' into the email field")
+
+# Schlecht – mehrere Aktionen kombiniert
+await page.act("fill out the form and submit it")
+await page.act("login with credentials and navigate to dashboard")
+```
+</CodeGroup>
+
+<div id="use-element-types-not-colors">
+  ### Verwenden Sie Elementtypen statt Farben
+</div>
+
+Beschreiben Sie Elemente anhand ihres Typs und ihrer Funktion statt über visuellen Merkmale wie Farbe.
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – Elementtypen und aussagekräftige Beschreibungen
+await page.act("click the 'Sign In' button");
+await page.act("type into the email input field");
+
+// Schlecht – farbbasierte Beschreibungen
+await page.act("click the blue button");
+await page.act("type into the white input");
+```
+
+```python Python
+# Gut – Elementtypen und aussagekräftige Beschreibungen
+await page.act("click the 'Sign In' button")
+await page.act("type into the email input field")
+
+# Schlecht – farbbasierte Beschreibungen
+await page.act("click the blue button")
+await page.act("type into the white input")
+```
+</CodeGroup>
+
+<div id="use-descriptive-language">
+  ### Präzise formulieren
+</div>
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – Eindeutige Elementansprache
+await page.act("Klicke auf die Schaltfläche „Weiter“ am unteren Rand des Formulars");
+await page.act("Gib etwas in die Suchleiste oben auf der Seite ein");
+
+// Schlecht – Vage Beschreibungen
+await page.act("klicke weiter");
+await page.act("in die Suche tippen");
+```
+
+```python Python
+# Gut – Eindeutige Elementansprache
+await page.act("Klicke auf die Schaltfläche „Weiter“ am unteren Rand des Formulars")
+await page.act("Gib etwas in die Suchleiste oben auf der Seite ein")
+
+# Schlecht – Vage Beschreibungen
+await page.act("klicke weiter")
+await page.act("in die Suche tippen")
+```
+</CodeGroup>
+
+<div id="choose-the-right-action-verbs">
+  ### Wähle die richtigen Aktionsverben
+</div>
+
+- **Click** für Buttons, Links, Kontrollkästchen
+- **Type** für Texteingabefelder
+- **Select** für Dropdown-Menüs
+- **Check/uncheck** für Kontrollkästchen
+- **Upload** für Dateiuploads
+
+<CodeGroup>
+```typescript TypeScript
+// Gut
+await page.act("click the submit button");
+await page.act("select 'Option 1' from dropdown");
+
+// Schlecht
+await page.act("click submit");
+await page.act("choose option 1");
+```
+
+```python Python
+# Gut
+await page.act("click the submit button")
+await page.act("select 'Option 1' from dropdown")
+
+# Schlecht
+await page.act("click submit")
+await page.act("choose option 1")
+```
+</CodeGroup>
+
+<div id="protect-sensitive-data">
+  ### Vertrauliche Daten schützen
+</div>
+
+Variablen halten vertrauliche Informationen aus Prompts und Logs heraus.
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – sichere Vorgehensweise
+await page.act({
+  action: "enter %username% in the email field",
+  variables: {
+    username: "user@example.com"
+  }
+});
+
+await page.act({
+  action: "enter %password% in the password field", 
+  variables: {
+    password: process.env.USER_PASSWORD
+  }
+});
+
+// Schlecht – unsichere Vorgehensweise
+await page.act("type 'mySecretPassword123' into the password field");
+```
+
+```python Python
+import os
+
+# Gut – sichere Vorgehensweise
+await page.act(
+  "enter %username% in the email field",
+  variables={
+    "username": "user@example.com"
+  }
+)
+
+await page.act(
+  "enter %password% in the password field",
+  variables={
+    "password": os.environ.get("USER_PASSWORD")
+  }
+)
+
+# Schlecht – unsichere Vorgehensweise
+await page.act("type 'mySecretPassword123' into the password field")
+```
+</CodeGroup>
+
+<Warning>
+Setze `verbose: 0` in deiner Stagehand-Konfiguration, um zu verhindern, dass Geheimnisse in Logs erscheinen.
+</Warning>
+
+<div id="extract-method">
+  ## Extract-Methode
+</div>
+
+Verwenden Sie `extract()`, um strukturierte Daten aus Seiten zu extrahieren. Definieren Sie klare Schemas und liefern Sie Kontext.
+
+<div id="schema-best-practices">
+  ### Best Practices für Schemas
+</div>
+
+Verwenden Sie aussagekräftige Feldnamen, passende Typen und präzise Beschreibungen. Feldbeschreibungen liefern Kontext, der dem Agent hilft, genau zu verstehen, was extrahiert werden soll.
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – aussagekräftige Namen, korrekte Typen und hilfreiche Beschreibungen
+const productData = await page.extract({
+  instruction: "Extract product information",
+  schema: z.object({
+    productTitle: z.string().describe("The main product name displayed on the page"),
+    priceInDollars: z.number().describe("Current selling price as a number, without currency symbol"),
+    isInStock: z.boolean().describe("Whether the product is available for purchase")
+  })
+});
+
+// Schlecht – generische Namen, falsche Typen, keine Beschreibungen
+const data = await page.extract({
+  instruction: "Get product details", 
+  schema: z.object({
+    name: z.string(), // Zu generisch, kein Kontext
+    price: z.string(), // Sollte eine Zahl sein
+    stock: z.string() // Sollte ein Boolean sein, kein Kontext
+  })
+});
+```
+
+```python Python
+from pydantic import BaseModel, Field
+
+# Gut – aussagekräftige Namen, korrekte Typen und hilfreiche Beschreibungen
+class ProductData(BaseModel):
+    productTitle: str = Field(description="The main product name displayed on the page")
+    priceInDollars: float = Field(description="Current selling price as a number, without currency symbol")
+    isInStock: bool = Field(description="Whether the product is available for purchase")
+
+productData = await page.extract(
+  "Extract product information",
+  schema=ProductData
+)
+
+# Schlecht – generische Namen, falsche Typen, keine Beschreibungen
+class Data(BaseModel):
+    name: str      # Zu generisch, kein Kontext
+    price: str     # Sollte float sein, kein Kontext
+    stock: str     # Sollte bool sein, kein Kontext
+
+data = await page.extract(
+  "Get product details",
+  schema=Data
+)
+```
+</CodeGroup>
+
+<div id="handle-arrays-correctly">
+  ### Arrays korrekt handhaben
+</div>
+
+Schemas immer in Objekte kapseln für zuverlässige Extraktion.
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – Array in Objekt gekapselt
+const listings = await page.extract({
+  instruction: "Extract all apartment listings",
+  schema: z.object({
+    apartments: z.array(z.object({
+      address: z.string(),
+      rent: z.number()
+    }))
+  })
+});
+
+// Schlecht – nacktes Array
+const listings = await page.extract({
+  instruction: "Extract apartment listings",
+  schema: z.array(z.string()) // So nicht machen
+});
+```
+
+```python Python
+from pydantic import BaseModel
+from typing import List
+
+# Gut – Array in Objekt gekapselt
+class Apartment(BaseModel):
+    address: str
+    rent: float
+
+class Listings(BaseModel):
+    apartments: List[Apartment]
+
+listings = await page.extract(
+  "Extract all apartment listings",
+  schema=Listings
+)
+
+# Schlecht – nacktes Array (nicht unterstützt)
+# So nicht machen – Arrays müssen in Objekten gekapselt sein
+```
+</CodeGroup>
+
+<div id="use-proper-url-types">
+  ### Verwenden Sie die richtigen URL-Typen
+</div>
+
+Geben Sie URL-Typen an, damit Stagehand URLs extrahiert. Ohne passende URL-Typen extrahiert Stagehand keine URLs.
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – weist Stagehand an, URLs zu extrahieren
+const links = await page.extract({
+  instruction: "Navigationslinks extrahieren",
+  schema: z.object({
+    links: z.array(z.object({
+      text: z.string(),
+      url: z.string().url() // Erforderlich für die URL-Extraktion
+    }))
+  })
+});
+```
+
+```python Python
+from pydantic import BaseModel, HttpUrl
+from typing import List
+
+# Gut – weist Stagehand an, URLs zu extrahieren
+class Link(BaseModel):
+    text: str
+    url: HttpUrl  # Erforderlich für die URL-Extraktion
+
+class Links(BaseModel):
+    links: List[Link]
+
+links = await page.extract(
+  "Navigationslinks extrahieren",
+  schema=Links
+)
+```
+</CodeGroup>
+
+<div id="observe-method">
+  ## Observe-Methode
+</div>
+
+Verwende `observe()`, um umsetzbare Elemente zu identifizieren, bevor du auf ihnen agierst.
+
+<div id="check-elements-first">
+  ### Elemente zuerst prüfen
+</div>
+
+Stellen Sie sicher, dass die Elemente vorhanden sind, bevor Sie eine Aktion ausführen, um Fehler zu vermeiden.
+
+<CodeGroup>
+```typescript TypeScript
+// Elemente zuerst prüfen
+const loginButtons = await page.observe("Find the login button");
+
+if (loginButtons.length > 0) {
+  await page.act(loginButtons[0]);
+} else {
+  console.log("No login button found");
+}
+```
+
+```python Python
+# Elemente zuerst prüfen
+login_buttons = await page.observe("Find the login button")
+
+if len(login_buttons) > 0:
+    await page.act(login_buttons[0])
+else:
+    print("No login button found")
+```
+</CodeGroup>
+
+<div id="be-specific-about-element-types">
+  ### Sei spezifisch bei Elementtypen
+</div>
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – spezifische Elementtypen
+const submitButtons = await page.observe("Finde die Absenden-Schaltfläche im Formular");
+const dropdowns = await page.observe("Finde das Dropdown-Menü für die Bundesstaat-Auswahl");
+
+// Schlecht – zu vage
+const elements = await page.observe("Finde Absende-Dinge");
+const things = await page.observe("Finde Auswahl des Bundesstaats");
+```
+
+```python Python
+# Gut – spezifische Elementtypen
+submit_buttons = await page.observe("Finde die Absenden-Schaltfläche im Formular")
+dropdowns = await page.observe("Finde das Dropdown-Menü für die Bundesstaat-Auswahl")
+
+# Schlecht – zu vage
+elements = await page.observe("Finde Absenden")
+things = await page.observe("Finde Auswahl des Bundesstaats")
+```
+</CodeGroup>
+
+<div id="agent-method">
+  ## Agent-Methode
+</div>
+
+Verwende `agent()` für komplexe, mehrstufige Workflows. Gib ausführliche Anweisungen und setze passende Grenzen.
+
+<div id="navigate-first">
+  ### Zuerst navigieren
+</div>
+
+Fügen Sie keine Navigation in Agent-Aufgaben ein. Behandeln Sie sie separat.
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – zuerst navigieren
+await page.goto('https://amazon.com');
+await agent.execute('Search for wireless headphones under $100 and add the best rated one to cart');
+
+// Schlecht – Navigation in der Aufgabe
+await agent.execute('Go to Amazon, search for headphones, and add one to cart');
+```
+
+```python Python
+# Gut – zuerst navigieren
+await page.goto('https://amazon.com')
+await agent.execute('Search for wireless headphones under $100 and add the best rated one to cart')
+
+# Schlecht – Navigation in der Aufgabe
+await agent.execute('Go to Amazon, search for headphones, and add one to cart')
+```
+</CodeGroup>
+
+<div id="be-highly-specific">
+  ### Seien Sie möglichst konkret
+</div>
+
+Detaillierte Anweisungen führen zu besseren Ergebnissen.
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – detaillierte Anweisungen
+await agent.execute({
+  instruction: "Find Italian restaurants in Brooklyn that are open after 10pm, have outdoor seating, and are rated 4+ stars. Save the top 3 results.",
+  maxSteps: 25
+});
+
+// Schlecht – vage Anweisungen
+await agent.execute("Find some good restaurants");
+```
+
+```python Python
+# Gut – detaillierte Anweisungen
+await agent.execute(
+  instruction="Find Italian restaurants in Brooklyn that are open after 10pm, have outdoor seating, and are rated 4+ stars. Save the top 3 results.",
+  max_steps=25
+)
+
+# Schlecht – vage Anweisungen
+await agent.execute("Find some good restaurants")
+```
+</CodeGroup>
+
+<div id="set-appropriate-step-limits">
+  ### Angemessene Schrittlimits festlegen
+</div>
+
+Passen Sie die Schrittlimits an die Komplexität der Aufgabe an.
+
+<CodeGroup>
+```typescript TypeScript
+// Einfache Aufgabe – weniger Schritte
+await agent.execute({
+  instruction: "Abonniere den Newsletter mit der E-Mail-Adresse 'user@example.com'",
+  maxSteps: 10
+});
+
+// Komplexe Aufgabe – mehr Schritte  
+await agent.execute({
+  instruction: "Recherchiere 5 Projektmanagement-Tools und vergleiche Preise und Funktionen",
+  maxSteps: 50
+});
+```
+
+```python Python
+# Einfache Aufgabe – weniger Schritte
+await agent.execute(
+  instruction="Abonniere den Newsletter mit der E-Mail-Adresse 'user@example.com'",
+  max_steps=10
+)
+
+# Komplexe Aufgabe – mehr Schritte
+await agent.execute(
+  instruction="Recherchiere 5 Projektmanagement-Tools und vergleiche Preise und Funktionen",
+  max_steps=50
+)
+```
+</CodeGroup>
+
+<div id="include-success-criteria">
+  ### Erfolgskriterien einbeziehen
+</div>
+
+Sagen Sie dem Agenten, woran er erkennt, dass er fertig ist.
+
+<CodeGroup>
+```typescript TypeScript
+// Gut – klare Erfolgskriterien
+await agent.execute({
+  instruction: "Füge 3 Smartphone-Hüllen zum Warenkorb hinzu und bestätige, dass der Warenkorb genau 3 Artikel mit Gesamtpreis anzeigt",
+  maxSteps: 20
+});
+
+// Schlecht – keine Validierung
+await agent.execute("Füge einige Artikel zum Warenkorb hinzu");
+```
+
+```python Python
+# Gut – klare Erfolgskriterien
+await agent.execute(
+  instruction="Füge 3 Smartphone-Hüllen zum Warenkorb hinzu und bestätige, dass der Warenkorb genau 3 Artikel mit Gesamtpreis anzeigt",
+  max_steps=20
+)
+
+# Schlecht – keine Validierung
+await agent.execute("Füge einige Artikel zum Warenkorb hinzu")
+```
+</CodeGroup>
+
+<div id="common-mistakes-to-avoid">
+  ## Häufige Fehler, die Sie vermeiden sollten
+</div>
+
+- **Mehrere Aktionen kombinieren** – Beschränken Sie jeden `act()`-Aufruf auf eine einzelne Aktion
+- **Vage Beschreibungen verwenden** – Geben Sie genau an, mit welchen Elementen interagiert werden soll  
+- **Sensible Daten offenlegen** – Verwenden Sie für Zugangsdaten stets Variablen
+- **Validierung überspringen** – Prüfen Sie die Ergebnisse, bevor Sie fortfahren
+
+<div id="testing-your-prompts">
+  ## Testen Ihrer Prompts
+</div>
+
+1. **Einfach beginnen** – Zuerst die grundlegende Funktionalität testen
+2. **Komplexität schrittweise erhöhen** – Sich zu komplexen Workflows hocharbeiten
+3. **Ergebnisse überwachen** – Logging nutzen, um zu verstehen, was passiert
+4. **Aus Fehlern iterieren** – Prompts verfeinern, wenn sie nicht funktionieren
+Denken Sie daran: Gutes Prompting ist iterativ. Im Zweifel lieber genauer als vager sein.

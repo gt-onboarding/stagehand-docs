@@ -1,0 +1,180 @@
+---
+title: Installation
+description: Stagehand in ein bestehendes Projekt integrieren.
+---
+
+Installiere Stagehand in deiner bestehenden App mit dem TypeScript- oder Python-SDK.
+
+<Tip>
+  Für TypeScript/Node.js: Wir empfehlen dringend, die Node.js-Laufzeitumgebung zum Ausführen von Stagehand-Skripten zu verwenden, statt neuerer Alternativen wie Deno oder Bun.
+
+  **Bun unterstützt Stagehand nicht**, da es [Playwright](https://github.com/search?q=repo:oven-sh/bun+playwright\&type=issues) nicht unterstützt.
+
+  Für Python: Erforderlich ist Python 3.9+; wir empfehlen [uv](https://docs.astral.sh/uv/) zur Verwaltung deiner virtuellen Umgebung.
+</Tip>
+
+<Tabs>
+  <Tab title="TypeScript">
+    ### Abhängigkeiten installieren
+
+    <CodeGroup>
+      ```bash npm
+      npm install @browserbasehq/stagehand playwright zod
+      ```
+
+      ```bash pnpm
+      pnpm add @browserbasehq/stagehand playwright zod
+      ```
+
+      ```bash yarn
+      yarn add @browserbasehq/stagehand playwright zod
+      ```
+    </CodeGroup>
+
+    <Tip>
+      Wenn du lokal ausführst, installiere die Browser einmalig mit: `npx playwright install`.
+      Für Cloud-Browsersitzungen kannst du das überspringen.
+    </Tip>
+
+    ### Umgebung konfigurieren
+
+    Lege Umgebungsvariablen fest (oder eine `.env` über dein Framework):
+
+    <CodeGroup>
+      ```bash Bash
+      OPENAI_API_KEY=your_api_key
+      BROWSERBASE_API_KEY=your_api_key
+      BROWSERBASE_PROJECT_ID=your_project_id
+      ```
+    </CodeGroup>
+
+    ### In deiner Codebasis verwenden
+
+    Füge Stagehand dort ein, wo du Browserautomatisierung benötigst.
+
+    <CodeGroup>
+      ```typescript TypeScript
+      import "dotenv/config";
+      import { Stagehand } from "@browserbasehq/stagehand";
+      import { z } from "zod";
+
+      async function main() {
+        const stagehand = new Stagehand({
+          env: "BROWSERBASE"
+        });
+
+        await stagehand.init();
+        const page = stagehand.page;
+
+        await page.goto("https://example.com");
+        
+        // Auf der Seite interagieren
+        await page.act("Click the sign in button");
+        
+        // Strukturierte Daten extrahieren
+        const { title } = await page.extract({
+          instruction: "extract the page title",
+          schema: z.object({
+            title: z.string(),
+          }),
+        });
+
+        console.log(title);
+        await stagehand.close();
+      }
+
+      main().catch((err) => {
+        console.error(err);
+        process.exit(1);
+      });
+      ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Python">
+    ### Abhängigkeiten hinzufügen
+
+    <CodeGroup>
+      ```bash uv
+      uv add stagehand
+      ```
+
+      ```bash pip
+      pip install stagehand
+      ```
+    </CodeGroup>
+
+    ### Umgebung konfigurieren
+
+    Lege Umgebungsvariablen fest (oder eine `.env` über dein Framework):
+
+    <CodeGroup>
+      ```bash Bash
+      MODEL_API_KEY=your_api_key
+      BROWSERBASE_API_KEY=your_api_key
+      BROWSERBASE_PROJECT_ID=your_project_id
+      ```
+    </CodeGroup>
+
+    ### In deiner Codebasis verwenden
+
+    <CodeGroup>
+      ```python Python
+      import os
+      import asyncio
+      from stagehand import Stagehand
+
+      async def main():
+          stagehand = Stagehand(
+              env="BROWSERBASE",
+              model_api_key=os.getenv("MODEL_API_KEY")
+          )
+          await stagehand.init()
+          page = stagehand.page
+          
+          await page.goto("https://example.com")
+          
+          # Auf der Seite interagieren
+          await page.act("Click the sign in button")
+          
+          # Strukturierte Daten extrahieren
+          result = await page.extract({
+              "instruction": "extract the page title",
+              "schema": {
+                  "title": {
+                      "type": "string"
+                  }
+              }
+          })
+          
+          print(result["title"])
+          await stagehand.close()
+
+      if __name__ == "__main__":
+          asyncio.run(main())
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+<div id="next-steps">
+  ## Nächste Schritte
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Konfiguration" icon="gear" href="/de/configuration/browser">
+    Umgebung, Browserbase vs. lokal, Logging, Timeouts, LLM‑Anpassung
+  </Card>
+
+  <Card title="Act" icon="arrow-pointer" href="/de/basics/act">
+    Präzise Aktionen mit natürlicher Sprache ausführen
+  </Card>
+
+  <Card title="Extract" icon="download" href="/de/basics/extract">
+    Typisierte Datenerfassung mit Zod‑Schemas
+  </Card>
+
+  <Card title="Observe" icon="eye" href="/de/basics/observe">
+    Elemente und empfohlene Aktionen erkennen
+  </Card>
+</CardGroup>

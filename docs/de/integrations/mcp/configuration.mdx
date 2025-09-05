@@ -1,0 +1,460 @@
+---
+title: "Browserbase MCP-Serverkonfiguration"
+sidebarTitle: "Konfiguration"
+description: "Konfigurieren Sie Ihre Browserautomatisierung mit Befehlszeilenflags, Umgebungsvariablen und erweiterten Optionen"
+---
+
+<div id="configuration-overview">
+  ## Konfigurationsübersicht
+</div>
+
+Der Browserbase MCP-Server bietet umfangreiche Konfigurationsmöglichkeiten über Befehlszeilen-Flags und Umgebungsvariablen. Passen Sie Browserverhalten, Proxy-Einstellungen, Stealth-Modi, Modellauswahl und mehr an, um Ihre Browserautomatisierungs-Workflows zu konfigurieren.
+
+<Note>
+Befehlszeilen-Flags sind nur verfügbar, wenn der Server lokal ausgeführt wird (`npx @browserbasehq/mcp-server-browserbase` mit Flags oder einer lokalen Entwicklungsumgebung).
+</Note>
+
+<div id="environment-variables">
+  ## Umgebungsvariablen
+</div>
+
+Konfigurieren Sie die erforderlichen Browserbase-Anmeldeinformationen und optionalen Debugging-Einstellungen:
+
+<CardGroup cols={2}>
+<Card title="BROWSERBASE_API_KEY" icon="key">
+Ihr Browserbase-API-Schlüssel für die Authentifizierung
+</Card>
+
+<Card title="BROWSERBASE_PROJECT_ID" icon="key">
+Ihre Browserbase-Projekt-ID
+</Card>
+
+</CardGroup>
+
+<div id="command-line-flags">
+  ## Befehlszeilenflags
+</div>
+
+<div id="available-flags">
+  ### Verfügbare Flags
+</div>
+
+| Flag | Beschreibung |
+|------|-------------|
+| `--proxies` | Browserbase-Proxys für die Sitzung aktivieren |
+| `--advancedStealth` | Browserbase Advanced Stealth aktivieren (nur Scale-Plan) |
+| `--keepAlive` | Browserbase Keep-Alive-Sitzung aktivieren |
+| `--contextId <contextId>` | Eine Browserbase-Context-ID angeben |
+| `--persist [boolean]` | Ob der Browserbase-Kontext beibehalten wird (Standard: true) |
+| `--port <port>` | Port, auf dem für HTTP/SHTTP-Transport gehört wird |
+| `--host <host>` | Host, an den der Server gebunden wird (Standard: localhost, für alle Schnittstellen 0.0.0.0 verwenden) |
+| `--cookies [json]` | JSON-Array mit Cookies, die in den Browser injiziert werden |
+| `--browserWidth <width>` | Breite des Browser-Viewports (Standard: 1024) |
+| `--browserHeight <height>` | Höhe des Browser-Viewports (Standard: 768) |
+| `--modelName <model>` | Das Modell, das für Stagehand verwendet wird (Standard: gemini-2.0-flash) |
+| `--modelApiKey <key>` | API-Schlüssel für den benutzerdefinierten Modellanbieter (erforderlich bei Verwendung benutzerdefinierter Modelle) |
+| `--experimental` | Experimentelle Funktionen aktivieren (Standard: false) |
+
+<div id="configuration-examples">
+  ## Konfigurationsbeispiele
+</div>
+
+<div id="basic-configuration">
+  ### Basis-Konfiguration
+</div>
+
+<Tabs>
+<Tab title="Remote-URL (SHTTP)">
+
+
+<CodeGroup>
+```json Direct SHTTP
+{
+  "mcpServers": {
+    "browserbase": {
+      "url": "your-smithery-url.com"
+    }
+  }
+}
+```
+</CodeGroup>
+
+Bei Nutzung unseres remote gehosteten Servers übernehmen wir die LLM-Kosten für Gemini, das [leistungsstärkste Modell](https://www.stagehand.dev/evals) in [Stagehand](https://www.stagehand.dev).
+</Tab>
+
+<Tab title="NPM-Paket">
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": ["@browserbasehq/mcp-server-browserbase"],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+</Tab>
+
+<Tab title="Lokales STDIO">
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "node",
+      "args": ["/path/to/mcp-server-browserbase/cli.js"],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+</Tab>
+
+<Tab title="Lokales SHTTP">
+```bash
+# Server starten
+node cli.js --port 8931
+```
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "url": "http://localhost:8931/mcp",
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+</Tab>
+</Tabs>
+
+<div id="advanced-features">
+  ### Erweiterte Funktionen
+</div>
+
+<Tabs>
+<Tab title="Proxies">
+Aktivieren Sie Browserbase-Proxies für IP-Rotation und Geolocation-Tests.
+
+<Panel>
+[Erfahren Sie mehr über Browserbase-Proxies](https://docs.browserbase.com/features/proxies)
+</Panel>
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": ["@browserbasehq/mcp-server-browserbase", "--proxies"],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+</Tab>
+
+<Tab title="Advanced Stealth">
+Aktivieren Sie erweiterte Anti-Erkennungsfunktionen für noch unauffälligeres Browsen.
+
+<Panel>
+[Erfahren Sie mehr über Advanced Stealth](https://docs.browserbase.com/features/stealth-mode#advanced-stealth-mode)
+
+**Hinweis:** Advanced Stealth ist nur für Nutzer des Scale-Plans verfügbar.
+</Panel>
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": ["@browserbasehq/mcp-server-browserbase", "--advancedStealth"],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+</Tab>
+
+<Tab title="Contexts">
+Verwenden Sie persistente Browser-Kontexte, um Authentifizierung und Status über Sitzungen hinweg beizubehalten.
+
+<Panel>
+[Erfahren Sie mehr über Browserbase-Contexts](https://docs.browserbase.com/features/contexts)
+</Panel>
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": ["@browserbasehq/mcp-server-browserbase", "--contextId", "your_context_id"],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id"
+      }
+    }
+  }
+}
+```
+</Tab>
+</Tabs>
+
+<div id="browser-customization">
+  ### Browseranpassung
+</div>
+
+<Tabs>
+<Tab title="Viewport-Größe">
+Passe die Fenstergröße des Browsers an. Standard ist 1024x768. Empfohlenes Seitenverhältnis: 16:9.
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": [
+        "@browserbasehq/mcp-server-browserbase",
+        "--browserWidth", "1920",
+        "--browserHeight", "1080"
+      ],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+
+**Gängige Auflösungen:**
+- Desktop: 1920x1080, 1280x720, 1024x768
+- Mobile: 375x667 (iPhone), 360x640 (Android)
+- Tablet: 768x1024 (iPad)
+</Tab>
+
+<Tab title="Cookie-Injektion">
+Sitzungscookies für die Authentifizierung einspielen. Nützlich, wenn persistente Kontexte Sitzungscookies nicht zuverlässig übernehmen.
+
+<Panel>
+Cookies müssen dem [Playwright-Cookie-Format](https://playwright.dev/docs/api/class-browsercontext#browser-context-cookies) entsprechen.
+</Panel>
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": [
+        "@browserbasehq/mcp-server-browserbase",
+        "--cookies",
+        "[{\"name\": \"session\", \"value\": \"abc123\", \"domain\": \".example.com\", \"path\": \"/\", \"httpOnly\": true, \"secure\": true}]"
+      ],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+</Tab>
+</Tabs>
+
+<div id="model-configuration">
+  ## Modellkonfiguration
+</div>
+
+Konfigurieren Sie KI-Modelle für leistungsfähige Browserautomatisierung. Stagehand verwendet standardmäßig Googles Gemini 2.0 Flash, unterstützt jedoch mehrere Anbieter.
+
+<Warning>
+Wenn Sie ein benutzerdefiniertes Modell (nicht das Standardmodell) verwenden, müssen Sie für diesen Anbieter Ihren eigenen API-Schlüssel mit dem Flag `--modelApiKey` angeben.
+</Warning>
+
+<Tabs>
+<Tab title="Verfügbare Modelle">
+**Google Gemini** (Standard)
+- `google/gemini-2.0-flash` (Standard)
+- `google/gemini-1.5-pro`
+- `google/gemini-1.5-flash`
+
+**OpenAI**
+- `openai/gpt-4o`
+- `openai/gpt-4o-mini`
+- `openai/o1-mini`
+- `openai/o1-preview`
+- `openai/o3-mini`
+
+**Anthropic Claude**
+- `anthropic/claude-3-5-sonnet-latest`
+- `anthropic/claude-3-7-sonnet-latest`
+
+[Vollständige Liste der unterstützten Modelle anzeigen](https://docs.stagehand.dev/examples/custom_llms#supported-llms)
+</Tab>
+
+<Tab title="Konfigurationsbeispiele">
+<CodeGroup>
+```json OpenAI GPT-4o
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": [
+        "@browserbasehq/mcp-server-browserbase",
+        "--modelName", "openai/gpt-4o",
+        "--modelApiKey", "your_openai_api_key"
+      ],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id"
+      }
+    }
+  }
+}
+```
+
+```json Claude Sonnet
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": [
+        "@browserbasehq/mcp-server-browserbase",
+        "--modelName", "anthropic/claude-3-5-sonnet-latest",
+        "--modelApiKey", "your_anthropic_api_key"
+      ],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id"
+      }
+    }
+  }
+}
+```
+</CodeGroup>
+</Tab>
+</Tabs>
+
+<div id="development-configuration">
+  ## Entwicklungskonfiguration
+</div>
+
+<Tabs>
+<Tab title="Debugmodus">
+Detailliertes Logging für Fehlersuche und Entwicklung aktivieren.
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": ["@browserbasehq/mcp-server-browserbase"],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key",
+        "DEBUG": "true"
+      }
+    }
+  }
+}
+```
+</Tab>
+
+<Tab title="Eigener Host/Port">
+Eigenen Host und Port für den SHTTP-Transport konfigurieren.
+
+```json
+{
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": [
+        "@browserbasehq/mcp-server-browserbase",
+        "--host", "0.0.0.0",
+        "--port", "8080"
+      ],
+      "env": {
+        "BROWSERBASE_API_KEY": "your_api_key",
+        "BROWSERBASE_PROJECT_ID": "your_project_id",
+        "GEMINI_API_KEY": "your_gemini_api_key"
+      }
+    }
+  }
+}
+```
+</Tab>
+</Tabs>
+
+<div id="best-practices">
+  ## Best Practices
+</div>
+
+<Accordion title="Performance – Wie optimiere ich die Performance der Browser-Automatisierung?">
+- Verwenden Sie für Ihren Anwendungsfall geeignete Viewport-Größen
+- Aktivieren Sie Proxys nur bei Bedarf für Geolokalisierung
+- Wählen Sie effiziente Modelle (Gemini Flash für Geschwindigkeit, GPT-4o für Genauigkeit)
+- Nutzen Sie wiederverwendbare Kontexte, um die Authentifizierung beizubehalten
+</Accordion>
+
+<Accordion title="Sicherheit – Welche Sicherheitsmaßnahmen sollte ich umsetzen?">
+- Speichern Sie API-Schlüssel sicher in Umgebungsvariablen
+- Verwenden Sie Advanced Stealth für sensible Vorgänge
+- Implementieren Sie ein sauberes Sitzungsmanagement
+- Rotieren Sie Cookies und Kontexte regelmäßig
+</Accordion>
+
+<Accordion title="Entwicklung – Welche Entwicklungspraktiken werden empfohlen?">
+- Aktivieren Sie den Debug-Modus während der Entwicklung
+- Nutzen Sie Kontextpersistenz für schnellere Iterationen
+- Testen Sie mit verschiedenen Viewport-Größen
+- Überwachen Sie Sitzungsnutzung und Kontingente
+</Accordion>
+
+<Accordion title="Produktion – Wie sollte ich Produktionsumgebungen konfigurieren?">
+- Verwenden Sie die NPM-Installation für höhere Zuverlässigkeit
+- Konfigurieren Sie angemessene Timeouts
+- Implementieren Sie Fehlerbehandlung und Wiederholungslogik
+- Überwachen Sie Performance und Ressourcennutzung
+</Accordion>
+
+<div id="further-reading">
+  ## Weiterführende Informationen
+</div>
+
+<CardGroup cols={3}>
+<Card title="Browserbase-Dokumentation" icon="globe" href="https://docs.browserbase.com">
+Komplette Plattformdokumentation
+</Card>
+
+<Card title="Stagehand-Dokumentation" icon="robot" href="https://docs.stagehand.dev/">
+KI-gestützte Browserautomatisierung
+</Card>
+
+<Card title="Support" icon="headset" href="mailto:support@browserbase.com">
+Holen Sie sich Hilfe von unserem Team
+</Card>
+</CardGroup>

@@ -1,0 +1,251 @@
+---
+title: "Browserbase MCP-Server"
+sidebarTitle: "Einführung"
+description: "KI-gestützte Browserautomatisierung durch Integration des Model Context Protocols mit Stagehand"
+---
+
+<div id="overview">
+  ## Überblick
+</div>
+
+Der Browserbase MCP‑Server bringt leistungsstarke Browserautomatisierung über das Model Context Protocol (MCP) zu Claude. Aufbauend auf [Stagehand](https://docs.stagehand.dev/) bietet diese Integration KI‑gestützte Web‑Automatisierung mit natürlichsprachigen Befehlen.
+
+<Info>
+  Dieser Server ermöglicht es Claude, Browser zu steuern, Websites zu navigieren, mit Webelementen zu interagieren und Daten zu extrahieren – alles über einfache, dialogbasierte Befehle.
+</Info>
+
+<Note>
+  **Zwei Möglichkeiten, MCP zu nutzen:**
+
+  1. **Browserbase MCP‑Server**: Stellt Claude Desktop und anderen MCP‑Clients Browserautomatisierungstools bereit
+  2. **MCP‑Integrationen in Stagehand**: Externe Tools (wie Exa Search, Supabase) zu Stagehand‑Agents hinzufügen
+
+  Diese Dokumentation behandelt den Browserbase MCP‑Server. Informationen zur Verwendung von MCP‑Integrationen innerhalb von Stagehand‑Agents finden Sie unter [MCP Integrations](/de/best-practices/mcp-integrations).
+</Note>
+
+<div id="key-features">
+  ## Zentrale Funktionen
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Automatisierung in natürlicher Sprache" icon="wand-magic-sparkles">
+    Steuere Browser mit einfachen englischen Anweisungen wie „click the login button“ oder „fill out the contact form“
+  </Card>
+
+  <Card title="Web-Interaktion" icon="browser">
+    Navigiere, klicke und fülle Formulare mühelos aus
+  </Card>
+
+  <Card title="Datenextraktion" icon="download">
+    Extrahiere automatisch strukturierte Daten von beliebigen Websites
+  </Card>
+
+  <Card title="Verwaltung mehrerer Sitzungen" icon="window-restore">
+    Führe mehrere Browsersitzungen parallel aus – für komplexe Workflows
+  </Card>
+
+  <Card title="Screenshot-Erfassung" icon="camera">
+    Erfasse und analysiere Webseiten-Screenshots programmatisch
+  </Card>
+
+  <Card title="Cookie-Verwaltung" icon="cookie-bite">
+    Verwalte Authentifizierung und Sitzungsfortführung über Interaktionen hinweg
+  </Card>
+</CardGroup>
+
+<div id="core-benefits">
+  ## Zentrale Vorteile
+</div>
+
+<Tabs>
+  <Tab title="Einfache Nutzung">
+    <CardGroup cols={2}>
+      <Card title="Intuitive Befehle" icon="wand-magic-sparkles">
+        Sie müssen keine komplexen Selektoren oder Automatisierungssyntax lernen. Beschreiben Sie einfach in natürlicher Sprache, was Sie erreichen möchten.
+      </Card>
+
+      <Card title="Schnelle Einrichtung" icon="rocket">
+        Starten Sie in wenigen Minuten mit unserem NPM‑Paket oder einer gehosteten Remote‑URL.
+      </Card>
+
+      <Card title="Intelligente Automatisierung" icon="brain">
+        Die KI von Stagehand versteht den Kontext von Webseiten und passt sich unterschiedlichen Layouts und Designs an.
+      </Card>
+    </CardGroup>
+  </Tab>
+
+  <Tab title="Leistungsstarke Funktionen">
+    <CardGroup cols={2}>
+      <Card title="Vollständige Browsersteuerung" icon="browser">
+        Navigieren, klicken, eingeben, scrollen und mit beliebigen Web‑Elementen interagieren.
+      </Card>
+
+      <Card title="Datenintelligenz" icon="chart-line">
+        Strukturierte Informationen automatisch aus komplexen Webseiten extrahieren.
+      </Card>
+
+      <Card title="Persistente Sitzungen" icon="cookie-bite">
+        Authentifizierungszustände und Cookies über mehrere Interaktionen hinweg beibehalten.
+      </Card>
+
+      <Card title="Multi‑Session‑Support" icon="window-restore">
+        Parallele Browserinstanzen für komplexe Workflows ausführen.
+      </Card>
+    </CardGroup>
+  </Tab>
+
+  <Tab title="Bereit für Unternehmen">
+    <CardGroup cols={2}>
+      <Card title="Zuverlässige Infrastruktur" icon="server">
+        Auf der Cloud‑Browser‑Plattform von Browserbase aufgebaut für konsistente Performance.
+      </Card>
+
+      <Card title="Skalierbare Architektur" icon="arrows-up-to-line">
+        Mehrere gleichzeitige Sitzungen und Automatisierungsaufgaben in hohem Volumen bewältigen.
+      </Card>
+
+      <Card title="Sicherheitsfunktionen" icon="shield-check">
+        Stealth‑Modus, Proxy‑Support und fortgeschrittene Anti‑Erkennungsfunktionen.
+      </Card>
+
+      <Card title="Umfassendes Logging" icon="file-lines">
+        Detaillierte Sitzungsaufzeichnungen und Debug‑Informationen.
+      </Card>
+    </CardGroup>
+  </Tab>
+</Tabs>
+
+<div id="use-cases">
+  ## Anwendungsfälle
+</div>
+
+<Tabs>
+  <Tab title="Web Scraping & Datenerfassung">
+    <CardGroup cols={2}>
+      <Card title="E-Commerce-Monitoring" icon="store">
+        Produktpreise, Verfügbarkeit und Wettbewerbsinformationen verfolgen
+      </Card>
+
+      <Card title="Marktforschung" icon="chart-bar">
+        Daten aus mehreren Quellen für Analyse und Reporting sammeln
+      </Card>
+
+      <Card title="Content-Aggregation" icon="newspaper">
+        Artikel, Beiträge und Medien von verschiedenen Websites sammeln
+      </Card>
+
+      <Card title="Lead-Generierung" icon="users">
+        Kontaktinformationen und Geschäftsdaten aus Verzeichnissen extrahieren
+      </Card>
+    </CardGroup>
+  </Tab>
+
+  <Tab title="Testing">
+    <CardGroup cols={2}>
+      <Card title="Automatisiertes Testen" icon="flask">
+        Umfassende Testsuiten für Webanwendungen erstellen
+      </Card>
+
+      <Card title="Cross-Browser-Validierung" icon="browsers">
+        Funktionalität in unterschiedlichen Browserumgebungen testen
+      </Card>
+
+      <Card title="User-Journey-Tests" icon="route">
+        Reale Nutzerinteraktionen und Workflows simulieren
+      </Card>
+
+      <Card title="Performance-Monitoring" icon="gauge">
+        Seitenladezeiten und User-Experience-Metriken verfolgen
+      </Card>
+    </CardGroup>
+  </Tab>
+
+  <Tab title="Workflow-Automatisierung">
+    <CardGroup cols={2}>
+      <Card title="Formularautomatisierung" icon="file-contract">
+        Komplexe Webformulare automatisch ausfüllen und absenden
+      </Card>
+
+      <Card title="Berichtserstellung" icon="chart-line">
+        Daten extrahieren und automatisierte Reports generieren
+      </Card>
+
+      <Card title="Social-Media-Management" icon="share-nodes">
+        Beiträge planen und Engagement plattformübergreifend überwachen
+      </Card>
+
+      <Card title="Administrative Aufgaben" icon="clipboard-check">
+        Wiederkehrende webbasierte Geschäftsprozesse automatisieren
+      </Card>
+    </CardGroup>
+  </Tab>
+</Tabs>
+
+<div id="session-management">
+  ## Sitzungsverwaltung
+</div>
+
+<Info>
+  Der Browserbase MCP Server unterstützt sowohl Einzel- als auch Multi‑Sitzungsarchitekturen, um unterschiedliche Automatisierungsanforderungen abzudecken.
+</Info>
+
+<Tabs>
+  <Tab title="Single Session Mode">
+    **Traditioneller Ansatz**
+
+    - Eine aktive Browsersitzung zur gleichen Zeit
+    - Einfacher für grundlegende Automatisierungsaufgaben
+    - Automatisches Sitzungs‑Lifecycle‑Management
+    - Ideal für sequentielle Workflows
+  </Tab>
+
+  <Tab title="Multi-Session Mode">
+    **Erweiterte parallele Verarbeitung**
+
+    - Mehrere unabhängige Browsersitzungen
+    - Jede Sitzung verwaltet ihren eigenen Zustand
+    - Parallele Ausführung
+    - Perfekt für komplexe Workflows
+  </Tab>
+</Tabs>
+
+<div id="getting-started">
+  ## Erste Schritte
+</div>
+
+<Steps>
+  <Step title="MCP-Server installieren">
+    Wählen Sie je nach Bedarf zwischen NPM-Installation, gehosteter Remote-URL oder lokaler Entwicklung.
+  </Step>
+
+  <Step title="Authentifizierung konfigurieren">
+    Hinterlegen Sie Ihre Browserbase-API-Zugangsdaten in der MCP-Konfiguration.
+    Ihre API-Schlüssel erhalten Sie im [Browserbase-Dashboard](https://www.browserbase.com/overview).
+  </Step>
+
+  <Step title="Automatisierung starten">
+    Steuern Sie Browser mit natürlichen Sprachbefehlen über Claude.
+  </Step>
+</Steps>
+
+<Tip>
+  Bereit loszulegen? Sehen Sie sich unsere [Setup-Anleitung](/de/integrations/mcp/setup) für detaillierte Installationsinstruktionen an.
+</Tip>
+
+<div id="further-reading">
+  ## Weiterführende Ressourcen
+</div>
+
+<CardGroup cols={3}>
+  <Card title="Einrichtungsleitfaden" icon="rocket" href="/de/integrations/mcp/setup">
+    Starten Sie mit Installation und Konfiguration
+  </Card>
+
+  <Card title="Verfügbare Tools" icon="wrench" href="/de/integrations/mcp/tools">
+    Entdecken Sie alle verfügbaren Automatisierungs-Tools
+  </Card>
+
+  <Card title="Konfigurationsoptionen" icon="gear" href="/de/integrations/mcp/configuration">
+    Passen Sie Ihr Browser-Automatisierungs-Setup an
+  </Card>
+</CardGroup>

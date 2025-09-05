@@ -1,0 +1,149 @@
+---
+title: "Mehrere Tabs verwenden"
+description: "Mit Stagehand auf mehreren Tabs arbeiten"
+---
+
+Viele moderne Webanwendungen öffnen neue Tabs, wenn Nutzer auf bestimmte Schaltflächen oder Links klicken. Ohne geeignete Multitab-Unterstützung schlagen Automatisierungsskripte fehl, wenn erwartete Inhalte in einem neuen statt im aktuellen Tab erscheinen. Die Multitab-Funktionen von Stagehand sorgen dafür, dass Ihre Automatisierungen nahtlos über Workflows mit mehreren Tabs hinweg funktionieren.
+
+<div id="the-stagehand-page">
+  ## Die Stagehand-Seite
+</div>
+
+Stagehand passt sich automatisch an Multi-Tab-Workflows an. Das Objekt `stagehand.page` verweist stets auf den zuletzt geöffneten oder aktiven Tab, sodass Ihre Automatisierungen auch dann weiter funktionieren, wenn neue Tabs geöffnet werden.
+
+Das bedeutet, Sie können weiterhin vertraute Muster verwenden:
+
+<CodeGroup>
+  ```typescript TypeScript
+  const page = stagehand.page;
+  await page.goto("https://example.com");
+  await page.act("click the button that opens a new tab");
+  // page now automatically points to the new tab
+  await page.extract("get data from new tab");
+  ```
+
+  ```python Python
+  page = stagehand.page
+  await page.goto("https://example.com")
+  await page.act("click the button that opens a new tab")
+  # page now automatically points to the new tab
+  await page.extract("get data from new tab")
+  ```
+</CodeGroup>
+
+<Warning>
+  **Wichtig**: Der [Stagehand Agent](/de/basics/agent) arbeitet immer mit der `stagehand.page`. Wenn ein Agent über bestimmte Tabs hinweg arbeiten soll, müssen Sie das Wechseln zwischen Seiten/Tabs manuell steuern.
+</Warning>
+
+<div id="manual-page-management">
+  ## Manuelles Seitenmanagement
+</div>
+
+Für mehr Kontrolle oder Multitab-Workflows können Sie mehrere Tabs gezielt verwalten:
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Zweite Seite erstellen
+  await stagehand.context.newPage();
+  const pages = stagehand.context.pages();
+
+  const githubPage = pages[0];
+  const pythonPage = pages[1];
+
+  // Jede Seite zu unterschiedlichen Repositories navigieren
+  await githubPage.goto("https://github.com/browserbase/stagehand");
+  await pythonPage.goto("https://github.com/browserbase/stagehand-python");
+
+  // Daten von beiden Seiten gleichzeitig extrahieren
+  const [stagehandStars, stagehandPythonStars] = await Promise.all([
+    githubPage.extract("extract the repository stars"),
+    pythonPage.extract("extract the repository stars")
+  ]);
+
+  console.log(`Stagehand-Stars: ${stagehandStars}`);
+  console.log(`Stagehand-Python-Stars: ${stagehandPythonStars}`);
+  ```
+
+  ```python Python
+  # Zweite Seite erstellen
+  await stagehand.context.new_page()
+  pages = stagehand.context.pages()
+
+  github_page = pages[0]
+  python_page = pages[1]
+
+  # Jede Seite zu unterschiedlichen Repositories navigieren  
+  await github_page.goto("https://github.com/browserbase/stagehand")
+  await python_page.goto("https://github.com/browserbase/stagehand-python")
+
+  # Daten von beiden Seiten extrahieren
+  stagehand_stars = await github_page.extract("extract the repository stars")
+  stagehand_python_stars = await python_page.extract("extract the repository stars")
+
+  print(f"Stagehand-Stars: {stagehand_stars}")
+  print(f"Stagehand-Python-Stars: {stagehand_python_stars}")
+  ```
+</CodeGroup>
+
+<div id="handling-tab-events">
+  ## Umgang mit Tab-Ereignissen
+</div>
+
+Sie können auch Tab-Ereignisse abonnieren, um zu steuern, was passiert, wenn neue Tabs geöffnet werden:
+
+<CodeGroup>
+  ```typescript TypeScript
+  const page = stagehand.page;
+  await page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/five-tab/");
+
+  // Schließt den neuen Tab, sobald er geöffnet wurde
+  page.on("popup", async () => {
+    const newPage = stagehand.context.pages()[1];
+    await newPage.close();
+  });
+
+  await page.act("click the button to open the other page");
+
+  const page_number = await page.extract("extract the page number");
+  console.log(`You're on page ${page_number}`);
+  ```
+
+  ```python Python
+  page = stagehand.page
+  await page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/five-tab/")
+
+  # Schließt den neuen Tab, sobald er geöffnet wurde
+  async def handle_popup():
+      new_page = stagehand.context.pages()[1]
+      await new_page.close()
+
+  page.on("popup", handle_popup)
+
+  await page.act("click the button to open the other page")
+
+  page_number = await page.extract("extract the page number")
+  print(f"You're on page {page_number}")
+  ```
+</CodeGroup>
+
+<div id="next-steps">
+  ## Nächste Schritte
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Komplexe Workflows mit Agent orchestrieren" icon="robot" iconType="sharp-solid" href="/de/basics/agent">
+    Verwenden Sie `Agent`, um mehrstufige Aufgaben und komplexe Workflows autonom auszuführen.
+  </Card>
+
+  <Card title="Arbeiten mit iframes" icon="frame" iconType="sharp-solid" href="/de/best-practices/working-with-iframes">
+    Lernen Sie Best Practices für die Interaktion mit Elementen in iframes kennen.
+  </Card>
+
+  <Card title="Browser-Konfiguration" icon="browser" iconType="sharp-solid" href="/de/configuration/browser">
+    Verwalten Sie Browserkontexte und -Sitzungen für komplexe Automatisierungsszenarien.
+  </Card>
+
+  <Card title="Logging & Debugging" icon="bug" iconType="sharp-solid" href="/de/configuration/logging">
+    Gehen Sie Fehler robust an und beheben Sie Automatisierungsprobleme effektiv.
+  </Card>
+</CardGroup>

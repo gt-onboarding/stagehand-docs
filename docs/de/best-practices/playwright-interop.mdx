@@ -1,0 +1,42 @@
+---
+title: "Playwright-Interop"
+description: "Wie Stagehand mit Playwright interagiert"
+---
+
+Stagehand basiert auf [Playwright](https://playwright.dev/), daher können Sie Playwright-Methoden direkt über die Stagehand-Instanz aufrufen.
+
+<div id="page-and-context">
+  ## `page` und `context`
+</div>
+
+`stagehand.page` und `stagehand.context` sind Instanzen von Playwrights `Page` bzw. `BrowserContext`. Verwenden Sie diese, um mit der Playwright-Instanz zu interagieren, die Stagehand nutzt.
+
+<CodeGroup>
+```TypeScript TypeScript
+const page = stagehand.page;
+// Grundlegende Playwright-Methoden funktionieren
+await page.goto("https://github.com/browserbase/stagehand");
+
+// Stagehand überschreibt Playwright-Objekte
+await page.act("click on the contributors")
+```
+
+```python Python
+page = stagehand.page
+# Grundlegende Playwright-Methoden funktionieren
+await page.goto("https://github.com/browserbase/stagehand")
+
+# Stagehand überschreibt Playwright-Objekte
+await page.act("click on the contributors")
+```
+</CodeGroup>
+
+<div id="stagehand-v-playwright">
+  ## Stagehand vs. Playwright
+</div>
+
+Unten sehen Sie ein Beispiel, wie Sie mit Stagehand und Playwright eine Liste von Unternehmen von der AI‑Grant‑Website extrahieren.
+
+<img src="/images/stagehand-playwright.png" alt="Stagehand vs. Playwright" />
+
+Das obige Beispiel mit Stagehand lässt sich leicht wiederverwenden, um Daten von anderen Websites zu extrahieren, während das Playwright‑Beispiel für jede neue Website neu geschrieben werden müsste.

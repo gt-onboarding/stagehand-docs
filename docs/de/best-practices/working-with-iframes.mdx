@@ -1,0 +1,98 @@
+---
+title: Arbeiten mit iFrames
+---
+
+<div id="what-is-an-iframe">
+  ### Was ist ein iframe?
+</div>
+
+Iframes betten andere Seiten in die aktuelle Seite ein. Websites nutzen sie für Einwilligungsbanner, Zahlungs-Widgets, Chat-Bubbles und Inhalte von Drittanbietern.
+Elemente innerhalb von iframes existieren in einem separaten Kontext zur Hauptseite.
+
+<div id="enable-iframe-support">
+  ### Unterstützung für iframes aktivieren
+</div>
+
+Setzen Sie `iframes: true` in Ihren Befehlen `act()`, `observe()` und `extract()`.
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Aktionen innerhalb von iframes ausführen
+  await page.act({ action: "click the accept cookies button", iframes: true });
+
+  // Innerhalb von iframes beobachten
+  const results = await page.observe({
+    instruction: "Find the primary action button",
+    iframes: true,
+  });
+
+  // Aus iframes extrahieren
+  const data = await page.extract({
+    instruction: "Extract the product price from the payment widget",
+    schema: z.object({
+      price: z.string(),
+    }),
+    iframes: true,
+  });
+  ```
+
+  ```python Python
+  # Aktionen innerhalb von iframes ausführen
+  await page.act(
+      "click the accept cookies button",
+      iframes=True
+  )
+
+  # Innerhalb von iframes beobachten
+  results = await page.observe({
+      "instruction": "Find the primary action button",
+      "iframes": True,
+  })
+
+  # Aus iframes extrahieren
+  data = await page.extract({
+      "instruction": "Extract the product price from the payment widget",
+      "schema": {
+          "type": "object",
+          "properties": {
+              "price": {"type": "string"}
+          }
+      },
+      "iframes": True,
+  })
+  ```
+</CodeGroup>
+
+<div id="tips">
+  ### Tipps
+</div>
+
+- Iframes können die Verarbeitungszeit erhöhen. Für optimale Performance verwenden Sie die iframe-Option nur, wenn es notwendig ist.
+- Wenn Sie unsicher sind, ob sich ein Element in einem iframe befindet, können Sie das Vorhandensein von iframes in den Stagehand-Logs prüfen.
+- Wenn ein Element sporadisch nicht gefunden wird, befindet es sich möglicherweise in einem lazy geladenen iframe. Fügen Sie kleine Wartezeiten zwischen den Schritten ein oder führen Sie die Aktion erneut aus.
+
+<Note>
+  Sie können experimentelle Funktionen (wie Unterstützung für Shadow DOM) über Ihre Stagehand-Konfiguration aktivieren. Siehe den [Konfigurationsleitfaden](/de/configuration/browser).
+</Note>
+
+<div id="next-steps">
+  ## Nächste Schritte
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Seiten mit observe() analysieren" icon="magnifying-glass" iconType="sharp-solid" href="/de/basics/observe">
+    Nutze `observe()`, um präzise Einzelschrittaktionen zu planen, bevor du sie ausführst.
+  </Card>
+
+  <Card title="Daten mit extract() extrahieren" icon="table" iconType="sharp-solid" href="/de/basics/extract">
+    Nutze `extract()` mit einem Datenschema, um saubere, typisierte Daten von beliebigen Seiten zu extrahieren.
+  </Card>
+
+  <Card title="Aktionen cachen" icon="bolt" iconType="sharp-solid" href="/de/best-practices/caching">
+    Beschleunige wiederholte Automatisierungen, indem du Aktionen cachest.
+  </Card>
+
+  <Card title="act()-Grundlagen" icon="arrow-pointer" iconType="sharp-solid" href="/de/basics/act">
+    Lerne, wie du Einzelschrittaktionen zuverlässig mit `act()` ausführst.
+  </Card>
+</CardGroup>

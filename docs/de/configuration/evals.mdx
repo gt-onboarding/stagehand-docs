@@ -1,0 +1,239 @@
+---
+title: Evaluierungen & Metriken
+sidebarTitle: Evaluierungen
+description: Leistung überwachen, Kosten optimieren und LLM‑Wirksamkeit bewerten
+---
+
+Evaluierungen helfen Ihnen zu verstehen, wie gut Ihre Automatisierungen funktionieren, welche Modelle sich für Ihre Anwendungsfälle am besten eignen und wie Sie Kosten und Zuverlässigkeit optimieren können. Dieser Leitfaden behandelt sowohl die Überwachung eigener Workflows als auch das Durchführen umfassender Evaluierungen.
+
+<div id="why-evaluations-matter">
+  ## Warum Auswertungen wichtig sind
+</div>
+
+- **Leistungsoptimierung**: Ermitteln, welche Modelle und Einstellungen für Ihre spezifischen Automatisierungsaufgaben am besten geeignet sind
+- **Kostenkontrolle**: Tokenverbrauch und Inferenzzeit verfolgen, um Ausgaben zu optimieren
+- **Zuverlässigkeit**: Erfolgsraten messen und Fehlermuster erkennen
+- **Modellauswahl**: Unterschiedliche LLMs in realen Aufgaben vergleichen, um fundierte Entscheidungen zu treffen
+
+<Card
+  title="Live-Vergleiche von Modellen"
+  icon="scale-balanced"
+  href="https://www.stagehand.dev/evals"
+>
+  Sehen Sie sich Echtzeit-Leistungsvergleiche verschiedener LLMs auf dem [Stagehand Evals Dashboard](https://www.stagehand.dev/evals) an
+</Card>
+
+<div id="comprehensive-evaluations">
+  ## Umfassende Evals
+</div>
+
+Evals helfen Ihnen, Ihre Automatisierungs-Workflows systematisch zu testen und zu verbessern. Stagehand bietet sowohl integrierte Evals als auch Tools, um eigene zu erstellen.
+
+<Tip>
+Um Evals auszuführen, müssen Sie das [Stagehand-Repository](https://github.com/browserbase/stagehand) klonen und `npm install` ausführen, um die Abhängigkeiten zu installieren.
+</Tip>
+
+Wir haben drei Arten von Evals:
+
+1. **Deterministische Evals** – Evals, die deterministisch sind und ohne LLM-Inferenz ausgeführt werden können.
+2. **LLM-basierte Evals** – Evals, die die zugrunde liegende Funktionalität von Stagehands KI-Primitiven testen.
+
+<div id="llm-based-evals">
+  ### LLM-basierte Evals
+</div>
+
+<Tip>
+Um LLM-Evals auszuführen, benötigen Sie ein [Braintrust-Konto](https://www.braintrust.dev/docs/).
+</Tip>
+
+Um LLM-basierte Evals auszuführen, können Sie innerhalb des Stagehand-Repos `npm run evals` starten. Damit wird die Funktionalität der LLM-Primitiven in Stagehand überprüft, um sicherzustellen, dass sie wie erwartet arbeiten.
+
+Die Evals sind in folgende Kategorien unterteilt:
+
+1. **Act Evals** – Evals, die die Funktionalität der Methode `act` prüfen.
+2. **Extract Evals** – Evals, die die Funktionalität der Methode `extract` prüfen.
+3. **Observe Evals** – Evals, die die Funktionalität der Methode `observe` prüfen.
+4. **Kombinations-Evals** – Evals, die die Methoden `act`, `extract` und `observe` gemeinsam prüfen.
+
+<div id="configuring-and-running-evals">
+  #### Konfigurieren und Ausführen von Evals
+</div>
+
+Die einzelnen Evals findest du unter [`evals/tasks`](https://github.com/browserbase/stagehand/tree/main/evals/tasks). Jedes Eval ist gemäß [`evals/evals.config.json`](https://github.com/browserbase/stagehand/blob/main/evals/evals.config.json) in Kategorien gruppiert. Die zu verwendenden Modelle und weitere allgemeine Aufgaben­konfiguration kannst du in [`evals/taskConfig.ts`](https://github.com/browserbase/stagehand/blob/main/evals/taskConfig.ts) festlegen.
+
+Um ein bestimmtes Eval auszuführen, verwende `npm run evals <eval>`, oder führe alle Evals einer Kategorie mit `npm run evals category <category>` aus.
+
+<div id="viewing-eval-results">
+  #### Anzeigen von Eval-Ergebnissen
+</div>
+
+![Eval results](/images/evals.png)
+
+Eval-Ergebnisse können in Braintrust angezeigt werden. Sie können die Ergebnisse eines bestimmten Evals auf der Braintrust-URL einsehen, die im Terminal ausgegeben wird, wenn Sie `npm run evals` ausführen.
+
+Standardmäßig wird jedes Eval pro Modell fünfmal ausgeführt. Die Spalte „Exact Match“ zeigt den Prozentsatz der Fälle, in denen das Eval korrekt war. Die Spalte „Error Rate“ zeigt den Prozentsatz der Fälle, in denen das Eval mit einem Fehler endete.
+
+Über die Braintrust-UI können Sie nach Modell/Eval filtern und Ergebnisse über alle Evals hinweg aggregieren.
+
+<div id="deterministic-evals">
+  ### Deterministische Evals
+</div>
+
+Um deterministische Evals auszuführen, kannst du einfach `npm run e2e` im Stagehand-Repository starten. Dadurch wird die Playwright-Funktionalität innerhalb von Stagehand überprüft, um sicherzustellen, dass sie wie erwartet funktioniert.
+
+Diese Tests befinden sich unter [`evals/deterministic`](https://github.com/browserbase/stagehand/tree/main/evals/deterministic) und laufen sowohl in Browserbase-Browsern als auch in lokalen headless-Chromium-Browsern.
+
+<div id="creating-custom-evaluations">
+  ## Eigene Evaluierungen erstellen
+</div>
+
+<div id="step-by-step-guide">
+  ### Schritt-für-Schritt-Anleitung
+</div>
+
+<Steps>
+<Step title="Evaluationsdatei erstellen">
+Erstellen Sie eine neue Datei unter `evals/tasks/your-eval.ts`:
+
+```typescript
+import { EvalTask } from '../types';
+
+export const customEvalTask: EvalTask = {
+  name: 'custom_task_name',
+  description: 'Spezifischen Automations-Workflow testen',
+  
+  // Test-Setup
+  setup: async ({ page }) => {
+    await page.goto('https://example.com');
+  },
+  
+  // Der eigentliche Test
+  task: async ({ stagehand, page }) => {
+    // Ihre Automationslogik
+    await stagehand.act({ action: 'click the login button' });
+    const result = await stagehand.extract({ 
+      instruction: 'Get the user name',
+      schema: { username: 'string' }
+    });
+    return result;
+  },
+  
+  // Validierung
+  validate: (result, expected) => {
+    return result.username === expected.username;
+  },
+  
+  // Testfälle
+  testCases: [
+    {
+      input: { /* Testeingabe */ },
+      expected: { username: 'john_doe' }
+    }
+  ],
+  
+  // Bewertungskriterien
+  scoring: {
+    exactMatch: true,
+    timeout: 30000,
+    retries: 2
+  }
+};
+```
+</Step>
+
+<Step title="Zur Konfiguration hinzufügen">
+Aktualisieren Sie `evals/evals.config.json`:
+
+```json
+{
+  "categories": {
+    "custom": ["custom_task_name"],
+    "existing_category": ["custom_task_name"]
+  }
+}
+```
+</Step>
+
+<Step title="Evaluation ausführen">
+```bash
+# Benutzerdefinierte Evaluation testen
+npm run evals custom_task_name
+
+# Gesamte benutzerdefinierte Kategorie ausführen
+npm run evals category custom
+```
+</Step>
+</Steps>
+
+<div id="best-practices-for-custom-evals">
+  ## Best Practices für benutzerdefinierte Evals
+</div>
+
+<AccordionGroup>
+<Accordion title="Grundsätze für das Testdesign">
+- **Atomar**: Jeder Test sollte genau eine spezifische Fähigkeit prüfen
+- **Deterministisch**: Tests sollten konsistente Ergebnisse liefern
+- **Realistisch**: Reale Szenarien und Websites verwenden
+- **Messbar**: Klare Erfolgs- und Fehlerkriterien definieren
+</Accordion>
+
+<Accordion title="Performance-Optimierung">
+- **Parallele Ausführung**: Tests so gestalten, dass sie unabhängig laufen
+- **Ressourcenmanagement**: Nach jedem Test bereinigen
+- **Timeout-Behandlung**: Angemessene Timeouts für Operationen setzen
+- **Fehlerbehandlung**: Ausfälle robust und kontrolliert abfangen
+</Accordion>
+
+<Accordion title="Datenqualität">
+- **Ground Truth**: Verlässliche erwartete Ergebnisse festlegen
+- **Edge Cases**: Grenzfälle und Fehlerszenarien testen
+- **Statistische Signifikanz**: Mehrere Iterationen zur Absicherung der Ergebnisse ausführen
+- **Versionskontrolle**: Änderungen an Testfällen im Zeitverlauf nachverfolgen
+</Accordion>
+</AccordionGroup>
+
+<div id="troubleshooting-evaluations">
+  ### Fehlerbehebung bei Auswertungen
+</div>
+
+<AccordionGroup>
+<Accordion title="Auswertungs-Timeouts">
+**Symptome**: Tests schlagen mit Timeout-Fehlern fehl
+
+**Lösungen**:
+- Timeout in `taskConfig.ts` erhöhen
+- Schnellere Modelle verwenden (Gemini 2.5 Flash, GPT-4o Mini)
+- Testszenarien weniger komplex gestalten
+- Netzwerkverbindung zu LLM-Anbietern prüfen
+</Accordion>
+
+<Accordion title="Inkonsistente Ergebnisse">
+**Symptome**: Derselbe Test besteht/fällt zufällig
+
+**Lösungen**:
+- Temperatur auf 0 setzen für deterministische Ausgaben
+- Anzahl der Wiederholungen für statistische Signifikanz erhöhen
+- Leistungsfähigere Modelle für komplexe Aufgaben verwenden
+- Auf dynamische Website-Inhalte prüfen, die Tests beeinflussen
+</Accordion>
+
+<Accordion title="Hohe Auswertungskosten">
+**Symptome**: Token-Verbrauch überschreitet das Budget
+
+**Lösungen**:
+- Kostengünstigere Modelle verwenden (Gemini 2.0 Flash, GPT-4o Mini)
+- Wiederholungen für erste Tests reduzieren
+- Auf spezifische Auswertungskategorien fokussieren
+- Lokale Browser-Umgebung nutzen, um Browserbase-Kosten zu senken
+</Accordion>
+
+<Accordion title="Probleme mit der Braintrust-Integration">
+**Symptome**: Ergebnisse werden nicht ins Dashboard hochgeladen
+
+**Lösungen**:
+- Braintrust-API-Key-Konfiguration prüfen
+- Internetverbindung prüfen
+- Braintrust-SDK auf die neueste Version aktualisieren
+- Projektberechtigungen im Braintrust-Dashboard prüfen
+</Accordion>
+</AccordionGroup>

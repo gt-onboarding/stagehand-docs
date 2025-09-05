@@ -1,0 +1,316 @@
+---
+title: Agent
+description: "Automatisiere komplexe Workflows mit KI‑gestützten Browser‑Agents"
+---
+
+<div id="what-is-agent">
+  ## Was ist `agent()?`
+</div>
+
+```typescript
+agent.execute("apply for a job at browserbase")
+```
+
+`agent` verwandelt Aufgaben auf hoher Ebene in **vollständig autonome** Browser-Workflows. Sie können den Agenten anpassen, indem Sie den LLM‑Provider und das Modell festlegen, eigene Verhaltensanweisungen definieren und die maximale Schrittzahl konfigurieren.
+
+<img src="/images/agent.gif" alt="Agent" />
+
+<div id="why-use-agent">
+  ## Warum `agent()`?
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Mehrstufige Workflows" icon="route" href="#agent-execution-configuration">
+    Komplexe Abläufe automatisch ausführen.
+  </Card>
+
+  <Card title="Visuelles Verständnis" icon="eye" href="/de/best-practices/computer-use">
+    Erkennt und versteht Weboberflächen wie ein Mensch mithilfe von Computer Vision.
+  </Card>
+</CardGroup>
+
+<div id="using-agent">
+  ## Verwendung von `agent()`
+</div>
+
+So kannst du `agent()` verwenden, um einen Agenten zu erstellen.
+
+<CodeGroup>
+  ```typescript TypeScript
+  const agent = stagehand.agent({
+    provider: "anthropic",
+    model: "claude-sonnet-4-20250514",
+    instructions: "You are a helpful assistant that can use a web browser.",
+    options: {
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    },
+  });
+  await agent.execute("apply for a job at Browserbase")
+  ```
+
+  ```python Python
+  agent = stagehand.agent({
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-20250514",
+      "instructions": "You are a helpful assistant that can use a web browser.",
+      "options": {
+        "apiKey": os.getenv("ANTHROPIC_API_KEY"),
+      },
+  })
+  await agent.execute("apply for a job at Browserbase")
+  ```
+</CodeGroup>
+
+<div id="mcp-integrations">
+  ## MCP-Integrationen
+</div>
+
+Agents lassen sich über MCP (Model Context Protocol) mit externen Tools und Diensten erweitern. So kann Ihr Agent neben Browser-Interaktionen auch auf externe APIs und Datenquellen zugreifen.
+
+<CodeGroup>
+  ```typescript TypeScript (Pass URL)
+  const agent = stagehand.agent({
+    provider: "openai",
+    model: "computer-use-preview",
+    integrations: [
+      `https://mcp.exa.ai/mcp?exaApiKey=${process.env.EXA_API_KEY}`,
+    ],
+    instructions: `Du hast über Exa Zugriff auf die Websuche. Nutze sie, um vor dem Browsen aktuelle Informationen zu finden.`,
+    options: {
+      apiKey: process.env.OPENAI_API_KEY,
+    },
+  });
+
+  await agent.execute("Suche nach den besten Kopfhörern 2025 und führe den Checkout für die Top-Empfehlung durch");
+  ```
+
+  ```typescript TypeScript (Create Connection)
+  import { connectToMCPServer } from "@browserbasehq/stagehand";
+
+  const supabaseClient = await connectToMCPServer(
+    `https://server.smithery.ai/@supabase-community/supabase-mcp/mcp?api_key=${process.env.SMITHERY_API_KEY}`
+  );
+
+  const agent = stagehand.agent({
+    provider: "openai",
+    model: "computer-use-preview",
+    integrations: [supabaseClient],
+    instructions: `Du kannst mit Supabase-Datenbanken interagieren. Nutze diese Tools, um Daten zu speichern und abzurufen.`,
+    options: {
+      apiKey: process.env.OPENAI_API_KEY,
+    },
+  });
+
+  await agent.execute("Suche nach Restaurants und speichere das erste Ergebnis in der Datenbank");
+  ```
+</CodeGroup>
+
+<Tip>
+  MCP-Integrationen machen Agents leistungsfähiger, indem sie Browserautomatisierung mit externen APIs, Datenbanken und Diensten kombinieren. Der Agent kann intelligent entscheiden, wann er Browseraktionen oder externe Tools einsetzen sollte.
+</Tip>
+
+<Warning>
+  Stagehand verwendet standardmäßig ein Viewport von 1024x768 (die optimale Größe für Computer-Use-Agents). Andere Viewport-Größen können die Leistung beeinträchtigen. Wenn Sie den Viewport ändern müssen, können Sie dies in der [Browserkonfiguration](/de/configuration/browser) anpassen.
+</Warning>
+
+<div id="available-models">
+  ## Verfügbare Modelle
+</div>
+
+Verwenden Sie spezialisierte Modelle für Computer-Use (z. B. `computer-use-preview` von OpenAI oder `claude-sonnet-4-20250514` von Anthropic).
+
+<Card title="Verfügbare Modelle" icon="robot" href="/de/configuration/models">
+  Sehen Sie sich die Anleitung zur Verwendung verschiedener Modelle mit Stagehand an.
+</Card>
+
+<div id="agent-execution-configuration">
+  ## Ausführungskonfiguration für den Agent
+</div>
+
+Steuern Sie mit dem Parameter `maxSteps`, wie viele Schritte der Agent maximal zur Erledigung der Aufgabe ausführen darf.
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Set maxSteps to control how many actions the agent can take
+  await agent.execute({
+    instruction: "Sign me up for a library card",
+    maxSteps: 15 // Agent will stop after 15 steps if task isn't complete
+  });
+  ```
+
+  ```python Python
+  # Set max_steps to control how many actions the agent can take
+  result = await agent.execute({
+      "instruction": "Sign me up for a library card",
+      "max_steps": 15  # Agent will stop after 15 steps if task isn't complete
+  })
+  ```
+</CodeGroup>
+
+Bei komplexeren Aufgaben erhöhen Sie das `maxSteps`-Limit und prüfen Sie, ob die Aufgabe erfolgreich abgeschlossen wurde.
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Complex multi-step task requiring more actions
+  const result = await agent.execute({
+    instruction: "Find and apply for software engineering jobs, filtering by remote work and saving 3 applications",
+    maxSteps: 30, // Higher limit for complex workflows
+  });
+
+  // Check if the task completed successfully
+  if (result.success === true) {
+    console.log("Task completed successfully!");
+  } else {
+    console.log("Task failed or was incomplete");
+  }
+  ```
+
+  ```python Python
+  # Complex multi-step task requiring more actions
+  result = await agent.execute({
+      "instruction": "Find and apply for software engineering jobs, filtering by remote work and saving 3 applications",
+      "max_steps": 30  # Higher limit for complex workflows
+  })
+
+  # Check if the task completed successfully
+  if result.success == True:
+      print("Task completed successfully!")
+  else:
+      print("Task failed or was incomplete")
+  ```
+</CodeGroup>
+
+<div id="best-practices">
+  ## Best Practices
+</div>
+
+Die Einhaltung dieser Best Practices erhöht die Erfolgsquote Ihres Agents, verkürzt die Ausführungszeit und minimiert unerwartete Fehler bei der Aufgabenerledigung.
+
+<div id="start-on-the-right-page">
+  ### Auf der richtigen Seite starten
+</div>
+
+Navigiere zur Zielseite, bevor du Aufgaben ausführst:
+
+<Tabs>
+  <Tab title="So machen">
+    <CodeGroup>
+      ```typescript TypeScript
+      await page.goto('https://github.com/browserbase/stagehand');
+      await agent.execute('Get me the latest PR on the stagehand repo');
+      ```
+
+      ```python Python
+      await page.goto("https://github.com/browserbase/stagehand")
+      result = await agent.execute("Get me the latest PR on the stagehand repo")
+      ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="So nicht">
+    <CodeGroup>
+      ```typescript TypeScript
+      await agent.execute('Go to GitHub and find the latest PR on browserbase/stagehand');
+      ```
+
+      ```python Python
+      result = await agent.execute("Go to GitHub and find the latest PR on browserbase/stagehand")
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+<div id="be-specific">
+  ### Seien Sie konkret
+</div>
+
+Geben Sie detaillierte Anweisungen für bessere Ergebnisse:
+
+<Tabs>
+  <Tab title="So machen">
+    <CodeGroup>
+      ```typescript TypeScript
+      await agent.execute("Find Italian restaurants in Brooklyn that are open after 10pm and have outdoor seating");
+      ```
+
+      ```python Python
+      result = await agent.execute("Find Italian restaurants in Brooklyn that are open after 10pm and have outdoor seating")
+      ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="So nicht">
+    <CodeGroup>
+      ```typescript TypeScript
+      await agent.execute("Find a restaurant");
+      ```
+
+      ```python Python
+      result = await agent.execute("Find a restaurant")
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+<div id="troubleshooting">
+  ## Fehlerbehebung
+</div>
+
+<AccordionGroup>
+  <Accordion title="Agent beendet die Ausführung, bevor die Aufgabe abgeschlossen ist">
+    **Problem**: Der Agent beendet die Ausführung, bevor die angeforderte Aufgabe abgeschlossen ist
+
+    **Lösungen**:
+
+    - Prüfen, ob der Agent das Agent maxSteps-Limit erreicht (Standard: 20)
+    - Agent maxSteps für komplexe Aufgaben erhöhen: `maxSteps: 30` oder höher
+    - Sehr komplexe Aufgaben in kleinere, aufeinanderfolgende Ausführungen aufteilen
+
+    ```typescript
+    // maxSteps für komplexe Aufgaben erhöhen
+    await agent.execute({
+      instruction: "Complete the multi-page registration form with all required information",
+      maxSteps: 40 // Erhöhtes Limit für eine komplexe Aufgabe
+    });
+
+    // Oder in kleinere Aufgaben mit Erfolgskontrolle aufteilen
+    const firstResult = await agent.execute({
+      instruction: "Fill out page 1 of the registration form", 
+      maxSteps: 15
+    });
+
+    // Nur fortfahren, wenn die erste Aufgabe erfolgreich war
+    if (firstResult.success === true) {
+      await agent.execute({
+        instruction: "Navigate to page 2 and complete remaining fields",
+        maxSteps: 15
+      });
+    } else {
+      console.log("First task failed, stopping execution");
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Agent klickt nicht auf die richtigen Elemente">
+    **Problem**: Der Agent klickt auf falsche Elemente oder interagiert nicht mit den richtigen UI-Komponenten
+
+    **Lösungen**:
+
+    - Für eine geeignete Viewport-Größe sorgen: Stagehand verwendet standardmäßig `Viewport (1024x768)` (optimal für Computer-Use-Modelle)
+    - Änderungen der Viewport-Abmessungen vermeiden, da andere Größen die Leistung beeinträchtigen können
+  </Accordion>
+</AccordionGroup>
+
+<div id="next-steps">
+  ## Nächste Schritte
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Act" icon="play" href="/de/basics/act">
+    Aktionen effizient mithilfe von ObserveResult ausführen
+  </Card>
+
+  <Card title="Extract" icon="download" href="/de/basics/extract">
+    Strukturierte Daten aus beobachteten Elementen extrahieren
+  </Card>
+</CardGroup>

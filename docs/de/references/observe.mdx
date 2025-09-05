@@ -1,0 +1,249 @@
+---
+title: observe()
+description: "Vollständige API-Referenz für die observe()-Methode"
+icon: "magnifying-glass"
+---
+
+<CardGroup cols={1}>
+  <Card title="Observe" icon="magnifying-glass" href="/de/basics/observe">
+    Erfahren Sie, wie Sie observe() nutzen, um interaktive Elemente zu identifizieren und die Struktur von Webseiten zu analysieren
+  </Card>
+</CardGroup>
+
+<div id="method-signatures">
+  ### Methodensignaturen
+</div>
+
+<Tabs>
+  <Tab title="TypeScript">
+    ```typescript
+    // Mit ObserveOptions
+    await page.observe(options: ObserveOptions): Promise<ObserveResult[]>
+
+    // Kurzform mit String-Anweisung
+    await page.observe(instruction: string): Promise<ObserveResult[]>
+    ```
+
+    **ObserveOptions-Interface:**
+
+    ```typescript
+    interface ObserveOptions {
+      instruction?: string;
+      modelName?: AvailableModel;
+      modelClientOptions?: ClientOptions;
+      domSettleTimeoutMs?: number;
+      drawOverlay?: boolean;
+      iframes?: boolean;
+    }
+    ```
+  </Tab>
+
+  <Tab title="Python">
+    ```python
+    # Mit Parametern
+    await page.observe(
+        instruction: str,
+        dom_settle_timeout_ms: int = None,
+        iframes: bool = None,
+        model_name: AvailableModel = None,
+        model_client_options: Dict = None
+    ) -> List[ObserveResult]
+    ```
+  </Tab>
+</Tabs>
+
+<div id="parameters">
+  ### Parameter
+</div>
+
+<ParamField path="instruction" type="string" optional>
+  Beschreibung in natürlicher Sprache der zu findenden Elemente oder Aktionen.
+</ParamField>
+
+<ParamField path="modelName" type="AvailableModel" optional>
+  Überschreibt das Standard-LLM-Modell für diese Observation.
+</ParamField>
+
+<ParamField path="modelClientOptions" type="ClientOptions" optional>
+  Modellspezifische Konfigurationsoptionen.
+</ParamField>
+
+<ParamField path="domSettleTimeoutMs" type="number" optional>
+  Maximale Wartezeit, bis sich der DOM vor der Analyse stabilisiert.
+
+  **Standard:** `30000`
+</ParamField>
+
+<ParamField path="drawOverlay" type="boolean" optional>
+  Ob visuelle Overlays auf gefundenen Elementen gezeichnet werden (Debugging).
+
+  **Standard:** `false`
+</ParamField>
+
+<ParamField path="iframes" type="boolean" optional>
+  Auf `true` setzen, um innerhalb von Iframes zu suchen.
+
+  **Standard:** `false`
+</ParamField>
+
+<div id="response">
+  ### Antwort
+</div>
+
+**Rückgabe:** `Promise<ObserveResult[]>`
+
+Array der erkannten interaktiven Elemente, nach Relevanz sortiert.
+
+**ObserveResult-Schnittstelle:**
+
+```typescript
+interface ObserveResult {
+  selector: string;        // XPath-Selektor zum Auffinden des Elements
+  description: string;     // Menschlich lesbare Beschreibung
+  method?: string;         // Vorgeschlagene Aktionsmethode
+  arguments?: string[];    // Zusätzliche Aktionsparameter
+}
+```
+
+<ParamField path="selector" type="string">
+  XPath-Selektor, der das Element präzise lokalisiert.
+</ParamField>
+
+<ParamField path="description" type="string">
+  Menschlich lesbare Beschreibung des Elements und seines Zwecks.
+</ParamField>
+
+<ParamField path="method" type="string" optional>
+  Vorgeschlagene Interaktionsmethode: `"click"`, `"fill"`, `"selectOptionFromDropdown"`, `"nextChunk"`, `"scrollTo"`, `"prevChunk"`.
+</ParamField>
+
+<ParamField path="arguments" type="string[]" optional>
+  Zusätzliche Parameter für die vorgeschlagene Aktion.
+</ParamField>
+
+<div id="code-examples">
+  ### Codebeispiele
+</div>
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Grundlegende Elementerkennung
+  const buttons = await page.observe("find all clickable buttons");
+  const formFields = await page.observe("locate form input fields");
+
+  // Erweiterte Konfiguration
+  const elements = await page.observe({
+    instruction: "find important call-to-action buttons",
+    modelName: "gpt-4.1-mini",
+    domSettleTimeoutMs: 45000,
+    drawOverlay: true
+  });
+
+  // Mit Ergebnissen arbeiten
+  const [loginButton] = await page.observe("find the login button");
+  if (loginButton) {
+    console.log("Gefunden:", loginButton.description);
+    console.log("Selector:", loginButton.selector);
+    await page.act(loginButton); // Aktion ausführen
+  }
+
+  // Ergebnisse filtern
+  const submitButtons = await page.observe("find all submit buttons");
+  const primarySubmit = submitButtons.find(btn => 
+    btn.description.toLowerCase().includes('primary')
+  );
+
+  // Iframe-Suche
+  const iframeElements = await page.observe({
+    instruction: "find form fields inside the iframe",
+    iframes: true
+  });
+  ```
+
+  ```python Python
+  # Grundlegende Elementerkennung
+  buttons = await page.observe("find all clickable buttons")
+  form_fields = await page.observe("locate the form fields")
+
+  # Erweiterte Konfiguration  
+  elements = await page.observe(
+      instruction="find important call-to-action buttons",
+      model_name="gpt-4.1-mini",
+      dom_settle_timeout_ms=45000
+  )
+
+  # Mit Ergebnissen arbeiten
+  login_buttons = await page.observe("find the login button")
+  if login_buttons:
+      button = login_buttons[0]
+      print("Gefunden:", button.description)
+      print("Selector:", button.selector)
+      await page.act(button)  # Aktion ausführen
+
+  # Ergebnisse filtern
+  submit_buttons = await page.observe("find all submit buttons")
+  primary_submit = next((
+      btn for btn in submit_buttons 
+      if 'primary' in btn.description.lower()
+  ), None)
+
+  # Iframe-Suche
+  iframe_elements = await page.observe(
+      instruction="find the form fields inside the iframe",
+      iframes=True
+  )
+  ```
+</CodeGroup>
+
+<div id="integration-patterns">
+  ### Integrationsmuster
+</div>
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Observe → Act-Workflow
+  const actions = await page.observe("Checkout-Elemente finden");
+  for (const action of actions) {
+    await page.act(action);
+    await page.waitForTimeout(1000);
+  }
+
+  // Observe → Extract-Workflow
+  const tables = await page.observe("Datentabellen finden");
+  if (tables.length > 0) {
+    const data = await page.extract({
+      instruction: "Tabellendaten extrahieren",
+      selector: tables[0].selector,
+      schema: DataSchema
+    });
+  }
+
+  // Elementvalidierung
+  const requiredElements = await page.observe("Anmeldeformular finden");
+  if (requiredElements.length === 0) {
+    throw new Error("Anmeldeformular nicht gefunden");
+  }
+  ```
+
+  ```python Python
+  # Observe → Act-Workflow  
+  actions = await page.observe("Checkout-Elemente finden")
+  for action in actions:
+      await page.act(action)
+      await page.wait_for_timeout(1000)
+
+  # Observe → Extract-Workflow
+  tables = await page.observe("Datentabellen finden")
+  if tables:
+      data = await page.extract(
+          instruction="Tabellendaten extrahieren",
+          selector=tables[0].selector,
+          schema=DataSchema
+      )
+
+  # Elementvalidierung
+  required_elements = await page.observe("Anmeldeformular finden")
+  if not required_elements:
+      raise Exception("Anmeldeformular nicht gefunden")
+  ```
+</CodeGroup>

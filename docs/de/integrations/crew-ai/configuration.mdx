@@ -1,0 +1,184 @@
+---
+title: "CrewAI zur Automatisierung von Browseraufgaben verwenden"
+sidebarTitle: Konfiguration
+description: "Intelligente Agents erstellen, die mit Websites interagieren und Browseraufgaben anhand natürlicher Sprachanweisungen automatisieren"
+---
+
+Diese Anleitung führt dich durch die Einrichtung von CrewAI mit Browserbase, um Agents zu erstellen, die Webautomatisierungsaufgaben anhand natürlicher Sprachanweisungen ausführen können.
+
+<div id="step-1-install-dependencies">
+  ## Schritt 1: Abhängigkeiten installieren
+</div>
+
+Installieren Sie die erforderlichen Pakete für die Integration von CrewAI und Stagehand:
+
+```bash
+pip install stagehand-py crewai crewai-tools
+```
+
+<div id="step-2-configure-environment-variables">
+  ## Schritt 2: Umgebungsvariablen konfigurieren
+</div>
+
+Du benötigst API-Schlüssel von zwei Diensten:
+
+1. **Browserbase API Key und Project ID**: Erhalte diese über dein [Browserbase-Dashboard](https://www.browserbase.com/)
+2. **LLM API Key**: Hole dir einen API-Schlüssel von [OpenAI](https://platform.openai.com/api-keys) oder [Anthropic](https://console.anthropic.com/)
+
+Speichere deine API-Schlüssel sicher als Umgebungsvariablen:
+
+```bash
+BROWSERBASE_API_KEY="your-browserbase-api-key"
+BROWSERBASE_PROJECT_ID="your-browserbase-project-id"
+OPENAI_API_KEY="your-openai-api-key"
+ANTHROPIC_API_KEY="your-anthropic-api-key"
+```
+
+<div id="step-3-create-your-first-agent">
+  ## Schritt 3: Erstelle deinen ersten Agenten
+</div>
+
+Erstelle ein Python-Skript mit einem einfachen CrewAI-Agenten:
+
+```python
+import os
+from crewai import Agent, Task, Crew
+from crewai_tools import StagehandTool
+from stagehand.schemas import AvailableModel
+
+# API-Schlüssel aus der Umgebung laden
+browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
+browserbase_project_id = os.environ.get("BROWSERBASE_PROJECT_ID")
+model_api_key = os.environ.get("OPENAI_API_KEY")  # oder ANTHROPIC_API_KEY
+
+# StagehandTool initialisieren
+stagehand_tool = StagehandTool(
+    api_key=browserbase_api_key,
+    project_id=browserbase_project_id,
+    model_api_key=model_api_key,
+    model_name=AvailableModel.GPT_4O,  # oder AvailableModel.CLAUDE_3_7_SONNET_LATEST
+)
+
+# Agent mit dem Tool erstellen
+researcher = Agent(
+    role="Web Researcher",
+    goal="Find and summarize information from websites",
+    backstory="I'm an expert at finding information online.",
+    verbose=True,
+    tools=[stagehand_tool],
+)
+```
+
+<div id="step-4-create-and-run-a-task">
+  ## Schritt 4: Aufgabe erstellen und ausführen
+</div>
+
+Definieren Sie eine Aufgabe für Ihren Agenten und führen Sie sie aus:
+
+```python
+# Erstellen Sie eine Aufgabe, die das Tool verwendet
+research_task = Task(
+    description="Rufe https://www.example.com auf und beschreibe, was auf der Startseite zu sehen ist.",
+    agent=researcher,
+)
+
+# Die Crew ausführen
+crew = Crew(
+    agents=[researcher],
+    tasks=[research_task],
+    verbose=True,
+)
+
+try:
+    result = crew.kickoff()
+    print(result)
+finally:
+    # Ressourcen bereinigen
+    stagehand_tool.close()
+```
+
+<div id="step-5-run-your-script">
+  ## Schritt 5: Skript ausführen
+</div>
+
+Führen Sie Ihr Python-Skript aus:
+
+```bash
+python your_crew_script.py
+```
+
+<div id="advanced-configuration">
+  ## Erweiterte Konfiguration
+</div>
+
+Passen Sie das Verhalten von StagehandTool mit zusätzlichen Parametern an:
+
+```python
+stagehand_tool = StagehandTool(
+    api_key=browserbase_api_key,
+    project_id=browserbase_project_id, 
+    model_api_key=model_api_key,
+    model_name=AvailableModel.CLAUDE_3_7_SONNET_LATEST,
+    dom_settle_timeout_ms=5000,  # Länger warten, bis sich der DOM stabilisiert
+    headless=True,  # Browser im Headless-Modus ausführen
+    self_heal=True,  # Versucht, sich von Fehlern zu erholen
+    wait_for_captcha_solves=True,  # Auf das Lösen von CAPTCHAs warten
+    verbose=1,  # Protokollierungs-Verbosity steuern (0–3)
+)
+```
+
+<div id="example-tasks">
+  ## Beispielaufgaben
+</div>
+
+<Tabs>
+  <Tab title="Formularübermittlung" value="form-submission" label="Python">
+    ```python
+    form_task = Task(
+        description="""
+        Kontaktformular senden:
+        1. Öffne https://example.com/contact
+        2. Fülle das Formular mit dem Namen „John Doe“ und der E‑Mail-Adresse „john@example.com“ aus
+        3. Sende ab und bestätige den Erfolg
+        """,
+        agent=researcher,
+    )
+    ```
+  </Tab>
+  <Tab title="Datenextraktion" value="data-extraction" label="Python">
+    ```python
+    extraction_task = Task(
+        description="""
+        Produktinformationen extrahieren:
+        1. Öffne die Produktseite
+        2. Extrahiere alle Produktnamen, Preise und Beschreibungen
+        3. Formatiere als strukturierte Daten
+        """,
+        agent=researcher,
+    )
+    ```
+  </Tab>
+  <Tab title="Mehrstufige Navigation" value="multi-step-navigation" label="Python">
+    ```python
+    navigation_task = Task(
+        description="""
+        Navigieren und analysieren:
+        1. Starte auf der Startseite
+        2. Navigiere zum Produktbereich
+        3. Nach der Kategorie „Electronics“ filtern
+        4. Details des bestbewerteten Produkts finden und extrahieren
+        """,
+        agent=researcher,
+    )
+    ```
+  </Tab>
+</Tabs>
+
+<CardGroup cols={2}>
+  <Card title="CrewAI-Dokumentation" icon="book" href="https://docs.crewai.com/">
+    Sieh dir die CrewAI-Dokumentation an, um mehr über Funktionen und Integrationen zu erfahren.
+  </Card>
+  <Card title="Browserbase-Dokumentation" icon="book" href="https://docs.browserbase.com/">
+    Greife auf die Browserbase-Dokumentation zu, um umfassende Anleitungen und Ressourcen zu erhalten.
+  </Card>
+</CardGroup>

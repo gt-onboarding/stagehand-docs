@@ -1,0 +1,284 @@
+---
+title: Kostenoptimierung  
+sidebarTitle: Kostenoptimierung
+description: Kosten minimieren, ohne die Automationsleistung zu beeinträchtigen
+---
+
+Kostenoptimierung in Stagehand bedeutet, LLM-Inferenzkosten und Browser-Infrastrukturkosten in Balance zu halten. Dieser Leitfaden bietet praktische Strategien zur Senkung Ihrer Automationskosten.
+
+<div id="quick-wins">
+  ## Schnelle Erfolge
+</div>
+
+Beginnen Sie mit diesen einfachen Optimierungen, die Kosten reduzieren können:
+
+<div id="1-use-the-right-model-for-the-job">
+  ### 1. Das richtige Modell für die Aufgabe wählen
+</div>
+
+Wir raten davon ab, für einfache Aufgaben größere, teurere Modelle zu verwenden. Siehe unsere [Evaluationsergebnisse](https://stagehand.dev/evals) für Leistungs- und Kostenvergleiche über verschiedene Aufgabentypen hinweg.
+
+<CardGroup cols={2}>
+  <Card title="Leitfaden zur Modellauswahl" icon="brain" href="/de/configuration/models">
+    Wählen Sie das passende LLM für Ihr Budget und Ihre Genauigkeitsanforderungen
+  </Card>
+
+  <Card title="Evaluationsergebnisse" icon="chart-line" href="https://www.stagehand.dev/evals">
+    Sehen Sie, wie verschiedene Modelle bei unterschiedlichen Aufgaben abschneiden
+  </Card>
+</CardGroup>
+
+<div id="2-implement-smart-caching">
+  ### 2. Intelligentes Caching implementieren
+</div>
+
+Cache erfolgreiche Aktionen, um wiederholte LLM-Aufrufe zu vermeiden. Die Grundlagen findest du in unserem [Caching-Guide](/de/best-practices/caching):
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Cache successful actions
+  const [action] = await page.observe("Click the sign in button");
+  await setCache("sign_in_button", action);
+
+  // Reuse cached action (no LLM cost)
+  const cachedAction = await getCache("sign_in_button");
+  if (cachedAction) {
+    await page.act(cachedAction);
+  } else {
+    await page.act(action);
+  }
+  ```
+
+  ```python Python
+  # Cache successful actions
+  actions = await page.observe("Click the sign in button")
+  action = actions[0]
+  await set_cache("sign_in_button", action)
+
+  # Reuse cached action (no LLM cost)
+  cached_action = await get_cache("sign_in_button")
+  if cached_action:
+      await page.act(cached_action)
+  else:
+      await page.act(action)
+  ```
+</CodeGroup>
+
+<CardGroup cols={1}>
+  <Card title="Caching-Guide" icon="database" href="/de/best-practices/caching">
+    Senke Kosten mit intelligentem Aktions-Caching und observe‑Patterns
+  </Card>
+</CardGroup>
+
+<div id="3-optimize-browser-sessions">
+  ### 3. Browser-Sitzungen optimieren
+</div>
+
+Sitzungen nach Möglichkeit wiederverwenden und passende Timeouts setzen. Siehe [Browser-Konfiguration](/de/configuration/browser) für Details:
+
+<CodeGroup>
+  ```typescript TypeScript
+  const stagehand = new Stagehand({
+    env: "BROWSERBASE",
+    browserbaseSessionCreateParams: {
+      timeout: 1800, // 30 Minuten statt der standardmäßigen 1 Stunde
+      keepAlive: true, // Sitzung zwischen Aufgaben aktiv halten
+    }
+  });
+  ```
+
+  ```python Python
+  stagehand = Stagehand(
+      env="BROWSERBASE",
+      browserbase_session_create_params={
+          "timeout": 1800,  # 30 Minuten statt der standardmäßigen 1 Stunde
+          "keep_alive": True,  # Sitzung zwischen Aufgaben aktiv halten
+      }
+  )
+  ```
+</CodeGroup>
+
+<CardGroup cols={1}>
+  <Card title="Browserbase-Kostenoptimierung" icon="window-maximize" href="https://docs.browserbase.com/guides/cost-optimization">
+    Infrastrukturkosten und Sitzungsmanagement in Browserbase optimieren
+  </Card>
+</CardGroup>
+
+<div id="advanced-strategies">
+  ## Erweiterte Strategien
+</div>
+
+<div id="intelligent-model-switching">
+  ### Intelligentes Modell-Switching
+</div>
+
+Bei einfachen Aufgaben automatisch auf günstigere Modelle zurückfallen:
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Modelle je nach Aufgabenkomplexität von günstig nach teuer verwenden
+  // Siehe stagehand.dev/evals für Leistungsvergleiche
+  async function smartAct(page: Page, prompt: string) {
+    const models = ["cheaper-model", "premium-model"];
+    
+    for (const model of models) {
+      try {
+        const stagehand = new Stagehand({ modelName: model });
+        await stagehand.init();
+        const [action] = await stagehand.page.observe(prompt);
+        await stagehand.page.act(action);
+        return;
+      } catch (error) {
+        console.log(`Wechsle zurück auf ${model}...`);
+      }
+    }
+  }
+  ```
+
+  ```python Python
+  # Modelle je nach Aufgabenkomplexität von günstig nach teuer verwenden
+  # Siehe stagehand.dev/evals für Leistungsvergleiche
+  async def smart_act(page, prompt: str):
+      models = ["cheaper-model", "premium-model"]
+      
+      for model in models:
+          try:
+              stagehand = Stagehand(model_name=model)
+              await stagehand.init()
+              actions = await stagehand.page.observe(prompt)
+              action = actions[0]
+              await stagehand.page.act(action)
+              return
+          except Exception:
+              print(f"Wechsle zurück auf {model}...")
+  ```
+</CodeGroup>
+
+<div id="session-pooling">
+  ### Session-Pooling
+</div>
+
+Browser-Sitzungen über mehrere Aufgaben hinweg wiederverwenden:
+
+<CodeGroup>
+  ```typescript TypeScript
+  class SessionManager {
+    private sessions = new Map<string, Stagehand>();
+    
+    async getSession(taskType: string): Promise<Stagehand> {
+      if (this.sessions.has(taskType)) {
+        return this.sessions.get(taskType)!;
+      }
+      
+      const stagehand = new Stagehand({ env: "BROWSERBASE" });
+      await stagehand.init();
+      this.sessions.set(taskType, stagehand);
+      return stagehand;
+    }
+  }
+  ```
+
+  ```python Python
+  class SessionManager:
+      def __init__(self):
+          self.sessions = {}
+      
+      async def get_session(self, task_type: str):
+          if task_type in self.sessions:
+              return self.sessions[task_type]
+          
+          stagehand = Stagehand(env="BROWSERBASE")
+          await stagehand.init()
+          self.sessions[task_type] = stagehand
+          return stagehand
+  ```
+</CodeGroup>
+
+<div id="cost-monitoring">
+  ## Kostenüberwachung
+</div>
+
+Verfolgen Sie Ihre Ausgaben, um Optimierungspotenziale zu erkennen. Weitere Details finden Sie in unserem [Observability-Guide](/de/configuration/observability):
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Monitor token usage
+  const metrics = stagehand.metrics;
+  console.log(`Total tokens: ${metrics.totalPromptTokens + metrics.totalCompletionTokens}`);
+  console.log(`Estimated cost: $${(metrics.totalPromptTokens + metrics.totalCompletionTokens) * 0.00001}`);
+  ```
+
+  ```python Python
+  # Monitor token usage
+  metrics = stagehand.metrics
+  total_tokens = metrics['total_prompt_tokens'] + metrics['total_completion_tokens']
+  print(f"Total tokens: {total_tokens}")
+  print(f"Estimated cost: ${total_tokens * 0.00001:.4f}")
+  ```
+</CodeGroup>
+
+<CardGroup cols={1}>
+  <Card title="Observability & Metrics" icon="chart-line" href="/de/configuration/observability">
+    Nutzungsmuster überwachen und Kosten in Echtzeit nachverfolgen
+  </Card>
+</CardGroup>
+
+<div id="budget-controls">
+  ## Budgetsteuerung
+</div>
+
+Legen Sie Ausgabenlimits fest, um unerwartete Kosten zu vermeiden:
+
+<CodeGroup>
+  ```typescript TypeScript
+  class BudgetGuard {
+    private dailySpend = 0;
+    private maxDailyBudget: number;
+    
+    constructor(maxDailyBudget: number = 25) {
+      this.maxDailyBudget = maxDailyBudget;
+    }
+    
+    checkBudget(estimatedCost: number): void {
+      if (this.dailySpend + estimatedCost > this.maxDailyBudget) {
+        throw new Error(`Tagesbudget überschritten: $${this.maxDailyBudget}`);
+      }
+      this.dailySpend += estimatedCost;
+    }
+  }
+  ```
+
+  ```python Python
+  class BudgetGuard:
+      def __init__(self, max_daily_budget: float = 25.0):
+          self.daily_spend = 0
+          self.max_daily_budget = max_daily_budget
+      
+      def check_budget(self, estimated_cost: float) -> None:
+          if self.daily_spend + estimated_cost > self.max_daily_budget:
+              raise Exception(f"Tagesbudget überschritten: ${self.max_daily_budget}")
+          self.daily_spend += estimated_cost
+  ```
+</CodeGroup>
+
+<div id="related-resources">
+  ## Verwandte Ressourcen
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Leitfaden zur Modellauswahl" icon="brain" href="/de/configuration/models">
+    Wählen Sie das passende LLM für Ihr Budget und Ihre Genauigkeitsanforderungen
+  </Card>
+
+  <Card title="Caching-Strategien" icon="database" href="/de/best-practices/caching">
+    Senken Sie die Kosten mit intelligentem Aktions-Caching und observe()-Mustern
+  </Card>
+
+  <Card title="Observability & Metriken" icon="chart-line" href="/de/configuration/observability">
+    Überwachen Sie Nutzungs­muster und verfolgen Sie Kosten in Echtzeit
+  </Card>
+
+  <Card title="Browserkonfiguration" icon="window-maximize" href="/de/configuration/browser">
+    Optimieren Sie die Browserbase-Infrastrukturkosten und das Sitzungsmanagement
+  </Card>
+</CardGroup>

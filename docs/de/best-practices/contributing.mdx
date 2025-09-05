@@ -1,0 +1,58 @@
+---
+title: "Beiträge zu Stagehand leisten"
+description: "Best Practices für sinnvolle Beiträge zu Stagehand"
+---
+
+<div id="codeowners-and-subject-matter-experts">
+  # Codeowner und Fachexperten
+</div>
+
+Jeder Beitrag muss ausdrücklich von einem Codeowner genehmigt werden. Offiziell sind die Stagehand-Codeowner wie folgt:
+
+- [**Paul Klein**](https://github.com/pkiv)
+- [**Miguel Gonzalez**](https://github.com/miguelg719)
+- [**Sean McGuire**](https://github.com/seanmcguire12)
+- [**Anirudh Kamath**](https://github.com/kamath)
+- [**Sameel Arif**](https://github.com/sameelarif)
+- [**Filip Michalsky**](https://github.com/filip-michalsky)
+
+Besonderer Dank gilt [Jeremy Press](https://github.com/jeremypress), [Navid Pour](https://github.com/navidkpr) und [allen Mitwirkenden](https://github.com/browserbase/stagehand/graphs/contributors) für eure Hilfe, Stagehand zum besten Framework für Browser-Automatisierung zu machen.
+
+***Bitte zögert nicht, euch bei allen hier Genannten im [öffentlichen Slack-Kanal](https://join.slack.com/t/stagehand-dev/shared_invite/zt-38khc8iv5-T2acb50_0OILUaX7lxeBOg) zu melden***
+
+<div id="general-workflow">
+  ## Allgemeiner Workflow
+</div>
+
+Lass dich als [eine unserer geschätzten Beitragenden](https://github.com/browserbase/stagehand/graphs/contributors) aufführen!
+
+1. **Besprich deinen geplanten Beitrag, bevor du startest.** Andernfalls läufst du Gefahr, etwas vollständig zu verwerfen, in das du viel Zeit und Mühe investiert hast. Du kannst Miguel auf [Slack](https://stagehand.dev/slack) per DM für einen 1:1‑Call kontaktieren.
+2. **Öffne einen Pull Request.** Erstelle einen Fork dieses Repos und folge [GitHubs Anleitung zum Erstellen eines Pull Requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork). So kann unser Team deinen Beitrag prüfen und Kommentare hinterlassen. 
+3. **Warte auf das Review.** Wir geben unser Bestes, so schnell wie möglich auf deinen Beitrag einzugehen. Wenn nach 2–3 Tagen noch keine Kommentare eingegangen sind, schick Miguel eine DM auf [Slack](https://stagehand.dev/slack).
+4. **In den Branch `evals` mergen.** Wir lassen externe Beitragende [unser CI nicht über GitHub Actions ausführen](https://github.com/browserbase/stagehand/blob/main/.github/workflows/ci.yml), um Spam und Missbrauch zu verhindern. Wenn dein Beitrag eine erste Prüfung besteht, führen wir unsere Evals darauf aus
+    1. Standardmäßig führen alle PRs die folgenden Tests aus, die du auch aus dem Repo-Quellcode starten kannst:
+        1. Lint (`npm run lint`) – führt `prettier` und `eslint` aus. Wenn das fehlschlägt, kannst du in der Regel `npm run format` ausführen, um einige einfache Linting-Fehler zu beheben.
+        2. Build (`npm run build`) – lintet und baut TS → JS in `dist/` via `tsup`
+        3. End-to-End (`npm run e2e`) – deterministische End-to-End-Playwright-Tests zur Sicherstellung der grundlegenden Playwright-Funktionalität von [`stagehand.page`](http://stagehand.page) und `stagehand.context` sowie der Kompatibilität mit der Browserbase-API
+        4. Combination (`npm run evals category combination`) – führt KI‑basierte End-to-End-Tests mit Kombinationen aus `act`, `extract` und `observe` aus 
+    2. Wenn du etwas an `act`, `extract` oder `observe` selbst änderst, führen wir möglicherweise auch spezifische act/extract/observe‑Evals aus, um sicherzustellen, dass die bestehende Funktionalität nicht merklich abnimmt.
+    
+    ![CI](/images/CI.png)
+    
+5. **Aufräumen und in main mergen.** Sobald es in `evals` ist, kann die ursprüngliche beitragende Person leider keine weiteren Änderungen vornehmen. Das interne Stagehand‑Team ist dafür verantwortlich, den Code aufzuräumen und in main zu bringen. 
+
+<div id="contribution-guidelines">
+  ## Richtlinien für Beiträge
+</div>
+
+1. **Verwende Entwurfs‑PRs.** Wenn dein PR noch in Arbeit ist, setze ihn währenddessen auf „Entwurf“ (siehe unten) und markiere ihn zur Überprüfung bzw. füge Reviewer hinzu, sobald du bereit bist. Das hilft, die Review‑Warteschlange schlank zu halten.
+    
+    ![Draft PR](/images/pr_draft.png)
+    
+2. **Stelle einen reproduzierbaren Testplan bereit.** Füge ein Eval (bevorzugt) oder ein Beispiel hinzu. Wir können deinen PR nicht mergen, wenn wir nichts ausführen können, das deinen Beitrag konkret demonstriert. 
+    1. Schreibe ein Skript in [`evals/tasks`](https://github.com/browserbase/stagehand/tree/main/evals/tasks) als `someTask.ts`.
+    2. Trage dein Skript in [`evals.config.json`](https://github.com/browserbase/stagehand/blob/main/evals/evals.config.json) mit der Standardkategorie `combination` ein (*oder act/extract/observe, wenn du* *nur* *act/extract/observe* *testest*).
+3. **Füge ein Changeset hinzu.** Führe `npx changeset` in TS oder `uvx changeset` in Python aus, um ein Changeset hinzuzufügen, das sich direkt im `CHANGELOG` der kommenden Version widerspiegelt.
+    1. `patch` – keine neuen Funktionen für Endnutzer
+    2. `minor` – einige neue Funktionen für Endnutzer (neuer Funktionsparameter, neuer öffentlich gemachter Typ usw.)
+    3. `major` – du solltest keine Major‑Änderung committen

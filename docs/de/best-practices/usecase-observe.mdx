@@ -1,0 +1,114 @@
+---
+sidebarTitle: Anwendungsfälle
+---
+
+<div id="real-world-use-cases">
+  ## Praxisbeispiele
+</div>
+
+<div id="e-commerce-product-discovery">
+  ### Produkterkundung im E‑Commerce
+</div>
+
+```typescript
+// Interaktionselemente für Produkte ermitteln
+const productActions = await page.observe({
+  instruction: "Finde „In den Warenkorb“-Buttons, Größenauswahlen und Produktbilder"
+});
+
+// Aktionen nach Typ kategorisieren
+const cartButtons = productActions.filter(a => 
+  a.description.toLowerCase().includes('cart')
+);
+const sizeOptions = productActions.filter(a => 
+  a.description.toLowerCase().includes('size')
+);
+
+// Kauf-Workflow ausführen
+if (sizeOptions.length > 0) {
+  await page.act(sizeOptions[0]); // Zuerst Größe auswählen
+}
+if (cartButtons.length > 0) {
+  await page.act(cartButtons[0]); // Anschließend in den Warenkorb legen
+}
+```
+
+<div id="form-handling-validation">
+  ### Formularhandling & Validierung
+</div>
+
+```typescript
+// Formularstruktur vor dem Ausfüllen analysieren
+const formElements = await page.observe({
+  instruction: "Formularfelder, Validierungsmeldungen und Absenden-Schaltflächen finden"
+});
+
+// Auf Pflichtfelder prüfen
+const requiredFields = formElements.filter(e => 
+  e.description.includes('required') || e.description.includes('*')
+);
+
+console.log(`Es wurden ${requiredFields.length} Pflichtfelder zum Ausfüllen gefunden`);
+
+// Formular systematisch ausfüllen
+for (const field of requiredFields) {
+  await page.act(field);
+  // Je nach Feldtyp passende Eingabe hinzufügen
+}
+```
+
+<div id="dynamic-content-spa-navigation">
+  ### Dynamische Inhalte & SPA-Navigation
+</div>
+
+```typescript
+// Auf dynamisch geladene Inhalte warten und sie erkennen
+await page.waitForLoadState('networkidle');
+
+const dynamicElements = await page.observe({
+  instruction: "Finde neu geladene Inhalte, Auslöser für Infinite Scroll oder Ladeindikatoren",
+  domSettleTimeoutMs: 15000 // Länger auf dynamische Inhalte warten
+});
+
+// Infinite Scroll handhaben
+const scrollTriggers = dynamicElements.filter(e => 
+  e.description.toLowerCase().includes('mehr laden') ||
+  e.description.toLowerCase().includes('scroll')
+);
+
+if (scrollTriggers.length > 0) {
+  await page.act(scrollTriggers[0]);
+  // Rekursiv nach neuen Inhalten suchen
+  const newContent = await page.observe("Zusätzliche Elemente finden");
+}
+```
+
+<div id="multi-step-workflow-planning">
+  ### Mehrstufige Workflow-Planung
+</div>
+
+```typescript
+// Gesamten Checkout-Flow im Voraus planen
+async function planCheckoutWorkflow() {
+  // Schritt 1: Analyse der Warenkorbseite
+  await page.goto('/cart');
+  const cartActions = await page.observe("Checkout- und Warenkorb-Änderungsoptionen finden");
+  
+  // Schritt 2: Analyse der Checkout-Seite  
+  const checkoutButton = cartActions.find(a => a.description.includes('checkout'));
+  if (checkoutButton) await page.act(checkoutButton);
+  
+  const checkoutActions = await page.observe("Zahlungsformulare und Versandoptionen finden");
+  
+  // Schritt 3: Ausführungsreihenfolge planen
+  const shippingFields = checkoutActions.filter(a => a.description.includes('shipping'));
+  const paymentFields = checkoutActions.filter(a => a.description.includes('payment'));
+  const submitButton = checkoutActions.find(a => a.description.includes('complete order'));
+  
+  return { shippingFields, paymentFields, submitButton };
+}
+
+// Geplanten Workflow ausführen
+const workflow = await planCheckoutWorkflow();
+// Versand → Zahlung → Absenden
+```
