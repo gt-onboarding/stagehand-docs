@@ -1,0 +1,382 @@
+---
+title: Geschwindigkeitsoptimierung
+sidebarTitle: Geschwindigkeitsoptimierung
+description: Stagehand‑Leistung für schnellere Automatisierung und geringere Latenz optimieren
+---
+
+Die Leistung von Stagehand hängt von mehreren Faktoren ab: DOM‑Verarbeitungsgeschwindigkeit, LLM‑Inferenzzeit, Browser‑Operationen und Netzwerklatenz. Dieser Leitfaden stellt bewährte Strategien vor, um die Automatisierung zu beschleunigen.
+
+<div id="quick-performance-wins">
+  ## Schnelle Performance‑Erfolge
+</div>
+
+<div id="1-plan-ahead-with-observe">
+  ### 1. Vorausplanen mit Observe
+</div>
+
+Verwenden Sie einen einzelnen `observe()`‑Aufruf, um mehrere Aktionen zu planen, und führen Sie diese anschließend effizient aus:
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Statt sequenzieller Operationen mit mehreren LLM-Aufrufen
+  await page.act("Fill name field");        // LLM call #1
+  await page.act("Fill email field");       // LLM call #2
+  await page.act("Select country dropdown"); // LLM call #3
+
+  // Verwenden Sie ein einzelnes observe, um alle Formularfelder zu planen – ein LLM-Aufruf
+  const formFields = await page.observe("Find all form fields to fill");
+
+  // Führen Sie alle Aktionen ohne LLM-Inferenz aus
+  for (const field of formFields) {
+    await page.act(field); // Keine LLM-Aufrufe!
+  }
+
+  ```
+
+  ```python Python
+  import asyncio
+
+  # Statt sequenzieller Operationen mit mehreren LLM-Aufrufen
+  await page.act("Fill name field")        # LLM call #1
+  await page.act("Fill email field")       # LLM call #2  
+  await page.act("Select country dropdown") # LLM call #3
+
+  # Verwenden Sie ein einzelnes observe, um alle Formularfelder zu planen – ein LLM-Aufruf
+  form_fields = await page.observe("Find all form fields to fill")
+
+  # Führen Sie alle Aktionen ohne LLM-Inferenz aus
+  for field in form_fields:
+      await page.act(field) # Keine LLM-Aufrufe!
+
+  ```
+</CodeGroup>
+
+<Note>
+  **Performance‑Tipp**: Das Ausführen von Aktionen auf Basis von `observe`‑Ergebnissen vermeidet LLM‑Inferenz vollständig. Dieser Ansatz ist 2–3× schneller als direkte `act()`‑Aufrufe und das empfohlene Muster für mehrstufige Workflows.
+</Note>
+
+<Card title="Caching‑Leitfaden" icon="database" href="/de/best-practices/caching">
+  Lernen Sie fortgeschrittene Caching‑Muster und Strategien zur Cache‑Invalidierung kennen
+</Card>
+
+<div id="2-optimize-dom-processing">
+  ### 2. DOM-Verarbeitung optimieren
+</div>
+
+Reduzieren Sie die DOM-Komplexität, bevor Stagehand die Seite verarbeitet:
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Ressourcenintensive Elemente entfernen, die die Verarbeitung verlangsamen
+  await page.evaluate(() => {
+    // Video- und iFrame-Elemente entfernen
+    document.querySelectorAll('video, iframe').forEach(el => el.remove());
+    
+    // Aufwendige Animationen deaktivieren
+    document.querySelectorAll('[style*="animation"]').forEach(el => {
+      (el as HTMLElement).style.animation = 'none';
+    });
+  });
+
+  // Anschließend Stagehand-Operationen ausführen
+  await page.act("Click the submit button");
+  ```
+
+  ```python Python
+  # Ressourcenintensive Elemente entfernen, die die Verarbeitung verlangsamen
+  await page.evaluate("""
+  () => {
+    // Video- und iFrame-Elemente entfernen
+    document.querySelectorAll('video, iframe').forEach(el => el.remove());
+    
+    // Aufwendige Animationen deaktivieren
+    document.querySelectorAll('[style*="animation"]').forEach(el => {
+      el.style.animation = 'none';
+    });
+  }
+  """)
+
+  # Anschließend Stagehand-Operationen ausführen
+  await page.act("Click the submit button")
+  ```
+</CodeGroup>
+
+<div id="3-set-appropriate-timeouts">
+  ### 3. Angemessene Timeouts setzen
+</div>
+
+Verwenden Sie kürzere Timeouts für einfache Aktionen und längere für komplexe Seitenladevorgänge:
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Einfache Aktionen – Action-Timeout reduzieren
+  await page.act({ 
+    instruction: "Click the login button",
+    actTimeout: 5000  // Standard ist 30000 ms, für einfache Klicks reduzieren
+  });
+
+  // Komplexe Seitenladevorgänge – Navigation optimieren
+  await page.goto("https://heavy-spa.com", {
+    waitUntil: "domcontentloaded", // Nicht auf alle Ressourcen warten
+    timeout: 15000 // Kürzer als der Standard von 30 s
+  });
+  ```
+
+  ```python Python
+  # Einfache Aktionen – Action-Timeout reduzieren
+  await page.act("Click button", act_timeout=5000)
+
+
+  # Komplexe Seitenladevorgänge – Navigation optimieren
+  await page.goto("https://heavy-spa.com", 
+      wait_until="domcontentloaded",
+      timeout=15000
+  )
+  ```
+</CodeGroup>
+
+<div id="advanced-performance-strategies">
+  ## Erweiterte Performance-Strategien
+</div>
+
+<div id="smart-model-selection">
+  ### Intelligente Modellauswahl
+</div>
+
+Für einfache Aufgaben schnellere Modelle nutzen, Premium‑Modelle nur bei Bedarf:
+
+<CodeGroup>
+  ```typescript TypeScript
+  class SpeedOptimizedStagehand {
+    private fastModel: Stagehand;
+    private premiumModel: Stagehand;
+
+    async smartAct(page: Page, prompt: string, complexity: 'simple' | 'complex') {
+      const model = complexity === 'simple' ? this.fastModel : this.premiumModel;
+      return await model.page.act(prompt);
+    }
+  }
+
+  // Schnelles Modell für einfache Klicks/Formulare verwenden
+  await stagehand.smartAct(page, "Click submit", 'simple');
+
+  // Premium‑Modell für komplexes Reasoning verwenden
+  await stagehand.smartAct(page, "Find the cheapest flight option", 'complex');
+  ```
+
+  ```python Python
+  class SpeedOptimizedStagehand:
+      def __init__(self):
+          self.fast_model = Stagehand(model_name="fast-model")
+          self.premium_model = Stagehand(model_name="premium-model")
+      
+      async def smart_act(self, page, prompt: str, complexity: str):
+          model = self.fast_model if complexity == 'simple' else self.premium_model
+          return await model.page.act(prompt)
+
+  # Schnelles Modell für einfache Klicks/Formulare verwenden
+  await stagehand.smart_act(page, "Click submit", 'simple')
+
+  # Premium‑Modell für komplexes Reasoning verwenden  
+  await stagehand.smart_act(page, "Find the cheapest flight option", 'complex')
+  ```
+</CodeGroup>
+
+<Card title="Modellkonfiguration" icon="brain" href="/de/configuration/models">
+  Modellleistung und Kosten vergleichen
+</Card>
+
+<div id="page-load-optimization">
+  ### Optimierung des Seitenladens
+</div>
+
+Überspringen Sie unnötige Ressourcen beim Laden der Seite:
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Schwere Ressourcen global blockieren
+  await context.route('**/*', (route) => {
+    const resourceType = route.request().resourceType();
+    if (['image', 'font', 'media'].includes(resourceType)) {
+      route.abort();
+    } else {
+      route.continue();
+    }
+  });
+
+  // Schnellere Navigation verwenden
+  await page.goto(url, { 
+    waitUntil: 'domcontentloaded',  // Nicht auf Bilder/Schriften warten
+    timeout: 10000 
+  });
+  ```
+
+  ```python Python
+  # Schwere Ressourcen global blockieren
+  async def handle_route(route):
+      resource_type = route.request.resource_type
+      if resource_type in ['image', 'font', 'media']:
+          await route.abort()
+      else:
+          await route.continue_()
+
+  await context.route('**/*', handle_route)
+
+  # Schnellere Navigation verwenden
+  await page.goto(url, 
+      wait_until='domcontentloaded',  # Nicht auf Bilder/Schriften warten
+      timeout=10000
+  )
+  ```
+</CodeGroup>
+
+<Card title="Kostenoptimierung" icon="dollar-sign" href="/de/best-practices/cost-optimization">
+  Geschwindigkeit und Kosten in Einklang bringen
+</Card>
+
+<div id="performance-monitoring-and-benchmarking">
+  ## Leistungsüberwachung und Benchmarking
+</div>
+
+Leistungsmetriken erfassen und den Einfluss von Optimierungen messen:
+
+<div id="performance-tracking">
+  ### Performance-Tracking
+</div>
+
+<CodeGroup>
+  ```typescript TypeScript
+  class PerformanceTracker {
+    private speedMetrics: Map<string, number[]> = new Map();
+
+    async timedAct(page: Page, prompt: string): Promise<ActResult> {
+      const start = Date.now();
+      const result = await page.act(prompt);
+      const duration = Date.now() - start;
+      
+      if (!this.speedMetrics.has(prompt)) {
+        this.speedMetrics.set(prompt, []);
+      }
+      this.speedMetrics.get(prompt)!.push(duration);
+      
+      console.log(`Aktion „${prompt}“ dauerte ${duration} ms`);
+      return result;
+    }
+
+    getAverageTime(prompt: string): number {
+      const times = this.speedMetrics.get(prompt) || [];
+      return times.reduce((a, b) => a + b, 0) / times.length;
+    }
+  }
+  ```
+
+  ```python Python
+  import time
+  from collections import defaultdict
+
+  class PerformanceTracker:
+      def __init__(self):
+          self.speed_metrics = defaultdict(list)
+      
+      async def timed_act(self, page, prompt: str):
+          start = time.time()
+          result = await page.act(prompt)
+          duration = (time.time() - start) * 1000  # Umrechnung in ms
+          
+          self.speed_metrics[prompt].append(duration)
+          print(f'Aktion "{prompt}" dauerte {duration:.0f} ms')
+          return result
+      
+      def get_average_time(self, prompt: str) -> float:
+          times = self.speed_metrics[prompt]
+          return sum(times) / len(times) if times else 0
+  ```
+</CodeGroup>
+
+Beispielausgabe:
+
+```
+Aktion „Fill form“ dauerte 1000 ms
+Aktion „Click submit“ dauerte 2000 ms
+Aktion „Confirm submission“ dauerte 5000 ms
+```
+
+<div id="before-vs-after-benchmarking">
+  ### Benchmarking: vorher vs. nachher
+</div>
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Vor der Optimierung
+  console.time("workflow");
+  await page.act("Fill form");
+  await page.act("Click submit");
+  await page.act("Confirm submission");
+  console.timeEnd("workflow"); // 8000ms
+
+  // Nach der Optimierung mit observe‑Planung
+  console.time("workflow-optimized");
+  const workflowActions = await page.observe("Find form, submit, and confirm elements");
+
+  // Aktionen der Reihe nach ausführen, um Konflikte zu vermeiden
+  for (const action of workflowActions) {
+    await page.act(action);
+  }
+  console.timeEnd("workflow-optimized"); // 500ms
+  ```
+
+  ```python Python
+  import time
+
+  # Vor der Optimierung
+  start = time.time()
+  await page.act("Fill form")
+  await page.act("Click submit")
+  await page.act("Confirm submission")
+  print(f"Workflow took {(time.time() - start) * 1000:.0f}ms")  # 8000ms
+
+  # Nach der Optimierung mit observe‑Planung
+  start = time.time()
+  workflow_actions = await page.observe("Find form, submit, and confirm elements")
+
+  # Aktionen der Reihe nach ausführen, um Konflikte zu vermeiden
+  for action in workflow_actions:
+      await page.act(action)
+  print(f"Optimized workflow took {(time.time() - start) * 1000:.0f}ms")  # 500ms
+  ```
+</CodeGroup>
+
+Beispielausgabe:
+
+```
+Workflow took 8000ms
+Optimized workflow took 500ms
+```
+
+<CardGroup cols={1}>
+  <Card title="Observability & Metrics" icon="chart-line" href="/de/configuration/observability">
+    Umfassendes Performance‑Monitoring einrichten
+  </Card>
+</CardGroup>
+
+<div id="related-resources">
+  ## Verwandte Ressourcen
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Caching-Strategien" icon="database" href="/de/best-practices/caching">
+    Erweiterte Caching-Patterns für maximale Performance
+  </Card>
+
+  <Card title="Kostenoptimierung" icon="dollar-sign" href="/de/best-practices/cost-optimization">
+    Geschwindigkeit und Kosten sinnvoll ausbalancieren
+  </Card>
+
+  <Card title="Browser-Konfiguration" icon="window-maximize" href="/de/configuration/browser">
+    Browserbase-Einstellungen für maximale Geschwindigkeit optimieren
+  </Card>
+
+  <Card title="Modellauswahl" icon="brain" href="/de/configuration/models">
+    Das passende Modell für Geschwindigkeit vs. Genauigkeit wählen
+  </Card>
+</CardGroup>

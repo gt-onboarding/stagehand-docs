@@ -1,0 +1,466 @@
+---
+title: Browser
+sidebarTitle: Browser
+description: Stagehand auf Browserbase oder lokal konfigurieren
+---
+
+Stagehand unterstützt zwei primäre Umgebungen:
+
+- **Browserbase** – Cloud‑verwaltete Browserinfrastruktur, optimiert für Web‑Automatisierung in der Produktion und im großen Maßstab
+- **Lokal** – Browser direkt auf Ihrem Rechner ausführen für Entwicklung und Debugging
+
+<div id="browserbase-environment">
+  ## Browserbase-Umgebung
+</div>
+
+Browserbase stellt eine verwaltete Cloud-Browserinfrastruktur bereit, die für Webautomatisierung im großen Maßstab optimiert ist. Sie bietet erweiterte Funktionen wie Stealth-Modus, Proxy-Unterstützung und persistente Kontexte.
+
+<Card icon="cloud" title="Browserbase" href="https://docs.browserbase.com" description="Entdecken Sie die Funktionen und Vorteile von Browserbase für skalierbare Webautomatisierung.">
+  Entdecken Sie die Leistungsfähigkeit einer cloudverwalteten Browserinfrastruktur mit Browserbase.
+</Card>
+
+<div id="environment-variables">
+  ### Umgebungsvariablen
+</div>
+
+Bevor Sie beginnen, richten Sie die erforderlichen Umgebungsvariablen ein:
+
+<CodeGroup>
+```bash .env
+BROWSERBASE_API_KEY=your_api_key_here
+BROWSERBASE_PROJECT_ID=your_project_id_here
+```
+</CodeGroup>
+
+<Tip>
+Sie erhalten Ihren API-Schlüssel und Ihre Projekt-ID im [Browserbase-Dashboard](https://browserbase.com/overview).
+</Tip>
+
+<div id="using-stagehand-with-browserbase">
+  ### Nutzung von Stagehand mit Browserbase
+</div>
+
+<div id="basic-setup">
+  #### Grundlegende Einrichtung
+</div>
+
+Am einfachsten startest du mit den Standardeinstellungen:
+
+<CodeGroup>
+```typescript TypeScript
+import { Stagehand } from "@browserbasehq/stagehand";
+
+const stagehand = new Stagehand({
+  env: "BROWSERBASE",
+});
+
+await stagehand.init();
+```
+```python Python
+import os
+from stagehand import Stagehand
+
+stagehand = Stagehand(
+    env="BROWSERBASE",
+)
+
+await stagehand.init()
+```
+</CodeGroup>
+
+<div id="advanced-configuration">
+  #### Erweiterte Konfiguration
+</div>
+
+Konfigurieren Sie Browser-Einstellungen, Proxy-Unterstützung und weitere Sitzungsparameter:
+
+<CodeGroup>
+```typescript TypeScript
+import { Stagehand } from "@browserbasehq/stagehand";
+
+const stagehand = new Stagehand({
+  env: "BROWSERBASE",
+  // Optional: API-Key und Projekt-ID werden direkt aus Ihrer Umgebung übernommen
+  apiKey: process.env.BROWSERBASE_API_KEY,
+  projectId: process.env.BROWSERBASE_PROJECT_ID,
+  browserbaseSessionCreateParams: {
+    proxies: true,
+    region: "us-west-2",
+    browserSettings: {
+      viewport: { width: 1920, height: 1080 },
+      blockAds: true,
+    },
+  },
+});
+
+await stagehand.init();
+console.log("Session-ID:", stagehand.sessionId);
+```
+```python Python
+import os
+from stagehand import Stagehand
+
+stagehand = Stagehand(
+    env="BROWSERBASE",
+    # Optional: API-Key und Projekt-ID werden direkt aus Ihrer Umgebung übernommen
+    api_key=os.getenv("BROWSERBASE_API_KEY"),
+    project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+    browserbase_session_create_params={
+        "proxies": True,
+        "region": "us-west-2",
+        "browser_settings": {
+            "viewport": {"width": 1920, "height": 1080},
+            "block_ads": True,
+        },
+    },
+)
+```
+</CodeGroup>
+
+<Accordion title="Erweitertes Browserbase-Konfigurationsbeispiel">
+    <CodeGroup>
+    ```typescript TypeScript
+    const stagehand = new Stagehand({
+      env: "BROWSERBASE",
+      apiKey: process.env.BROWSERBASE_API_KEY,
+      projectId: process.env.BROWSERBASE_PROJECT_ID,
+      browserbaseSessionCreateParams: {
+        projectId: process.env.BROWSERBASE_PROJECT_ID!,
+        proxies: true,
+        region: "us-west-2",
+        timeout: 3600, // Sitzungs-Timeout von 1 Stunde
+        keepAlive: true, // Verfügbar im Startup-Plan
+        browserSettings: {
+          advancedStealth: false, // Feature des Scale-Plans – wenden Sie sich an support@browserbase.com, um es zu aktivieren
+          blockAds: true,
+          solveCaptchas: true,
+          recordSession: false,
+          viewport: {
+            width: 1920,
+            height: 1080,
+          },
+          fingerprint: {
+            browsers: ["chrome", "edge"],
+            devices: ["desktop"],
+            operatingSystems: ["windows", "macos"],
+            locales: ["en-US", "en-GB"],
+            httpVersion: 2,
+          },
+        },
+        userMetadata: {
+          userId: "automation-user-123",
+          environment: "production",
+        },
+      },
+    });
+    ```
+    ```python Python
+    stagehand = Stagehand(
+        env="BROWSERBASE",
+        api_key=os.getenv("BROWSERBASE_API_KEY"),
+        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+        browserbase_session_create_params={
+            "project_id": os.getenv("BROWSERBASE_PROJECT_ID"),
+            "proxies": True,
+            "region": "us-west-2",
+            "timeout": 3600,  # Sitzungs-Timeout von 1 Stunde
+            "keep_alive": True,  # Verfügbar im Startup-Plan
+            "browser_settings": {
+                "advanced_stealth": False,  # Feature des Scale-Plans – wenden Sie sich an support@browserbase.com, um es zu aktivieren
+                "block_ads": True,
+                "solve_captchas": True,
+                "record_session": False,
+                "viewport": {
+                    "width": 1920,
+                    "height": 1080,
+                },
+                "fingerprint": {
+                    "browsers": ["chrome", "edge"],
+                    "devices": ["desktop"],
+                    "operating_systems": ["windows", "macos"],
+                    "locales": ["en-US", "en-GB"],
+                    "http_version": 2,
+                },
+            },
+            "user_metadata": {
+                "user_id": "automation-user-123",
+                "environment": "production",
+            },
+        },
+    )
+    ```
+</CodeGroup>
+</Accordion>
+
+<div id="initialization-result">
+  #### Initialisierungsergebnis
+</div>
+
+Nach dem Aufruf von `stagehand.init()` gibt die Methode Konfigurationsinformationen zur initialisierten Sitzung zurück:
+
+<CodeGroup>
+```typescript TypeScript
+const result = await stagehand.init();
+console.log(result);
+```
+```python Python
+result = await stagehand.init()
+print(result)
+```
+</CodeGroup>
+
+Das zurückgegebene Objekt enthält:
+
+```Example
+{
+  debugUrl: 'https://www.browserbase.com/devtools/inspector.html?wss=connect.browserbase.com/debug/f8a21b4a-6fa1-4ab9-9007-fbfe61dc14f0/devtools/page/5474B0E0510C5B6E629BEB06E799CD70?debug=true',
+  sessionUrl: 'https://www.browserbase.com/sessions/f8a21b4a-6fa1-4ab9-9007-fbfe61dc14f0',
+  sessionId: 'f8a21b4a-6fa1-4ab9-9007-fbfe61dc14f0'
+}
+```
+
+<AccordionGroup>
+<Accordion title="debugUrl">
+**Öffnen Sie die Browserbase-[Session-Live-Ansicht](https://docs.browserbase.com/features/session-live-view)**, um einen Human-in-the-Loop einzubinden.
+</Accordion>
+
+<Accordion title="sessionUrl">
+**Öffnen Sie die [Session Replay](https://docs.browserbase.com/features/session-replay)**, um die vollständige Sitzungsaufzeichnung anzusehen. 
+</Accordion>
+
+<Accordion title="sessionId">
+**Eindeutiger Bezeichner** für die [Browserbase-Sitzung](https://docs.browserbase.com/introduction/what-is-browserbase). Er wird verwendet, um die Sitzung im Browserbase-Dashboard zu identifizieren und eine Verbindung zur Sitzung herzustellen.
+</Accordion>
+</AccordionGroup>
+
+<div id="alternative-browserbase-sdk">
+  ### Alternative: Browserbase-SDK
+</div>
+
+Wenn Sie Sitzungen direkt verwalten möchten, können Sie das Browserbase-SDK verwenden:
+
+<CodeGroup>
+```typescript TypeScript
+import { Browserbase } from "@browserbasehq/sdk";
+
+const bb = new Browserbase({ 
+  apiKey: process.env.BROWSERBASE_API_KEY! 
+});
+
+const session = await bb.sessions.create({
+  projectId: process.env.BROWSERBASE_PROJECT_ID!,
+  // Konfigurationsoptionen hier hinzufügen
+});
+```
+```python Python
+from browserbase import Browserbase
+
+bb = Browserbase(api_key=os.environ["BROWSERBASE_API_KEY"])
+
+session = bb.sessions.create(
+    project_id=os.environ["BROWSERBASE_PROJECT_ID"],
+    # Konfigurationsoptionen hier hinzufügen
+)
+```
+</CodeGroup>
+
+<div id="connecting-to-an-existing-session">
+  #### Verbindung mit einer bestehenden Sitzung
+</div>
+
+Stellen Sie über die Sitzungs-ID eine Verbindung zu einer zuvor erstellten Browserbase-Sitzung her:
+
+<CodeGroup>
+```typescript TypeScript
+import { Stagehand } from "@browserbasehq/stagehand";
+
+const stagehand = new Stagehand({
+  env: "BROWSERBASE",
+  browserbaseSessionID: "existing-session-uuid-here",
+});
+
+await stagehand.init();
+console.log("Fortgesetzte Sitzungs-ID:", stagehand.sessionId);
+```
+```python Python
+import os
+from stagehand import Stagehand
+
+stagehand = Stagehand(
+    env="BROWSERBASE",
+    browserbase_session_id="existing-session-uuid-here",
+)
+
+await stagehand.init()
+print(f"Fortgesetzte Sitzungs-ID: {stagehand.session_id}")
+```
+</CodeGroup>
+
+<div id="local-environment">
+  ## Lokale Umgebung
+</div>
+
+Die lokale Umgebung führt Browser direkt auf Ihrem Rechner aus und bietet volle Kontrolle über Browserinstanzen und -konfigurationen. Ideal für Entwicklung, Debugging und Szenarien, die individuelle Browser-Setups erfordern.
+
+<div id="environment-comparison">
+  ### Umgebungsvergleich
+</div>
+
+| Funktion | Browserbase | Lokal |
+| --- | --- | --- |
+| **Skalierbarkeit** | Hoch (cloud‑verwaltet) | Begrenzt (lokale Ressourcen) |
+| **Stealth-Funktionen** | Fortschrittliches Fingerprinting | Grundlegendes Stealth |
+| **Proxy-Unterstützung** | Integrierte Residential-Proxys | Manuelle Konfiguration |
+| **Sitzungspersistenz** | Cloud-Kontextspeicherung | Dateibasierte Nutzerdaten |
+| **Geografische Verteilung** | Bereitstellung über mehrere Regionen | Einzelner Rechner |
+| **Debugging** | Sitzungsaufzeichnungen & Logs | Direkter DevTools-Zugriff |
+| **Einrichtungsaufwand** | Nur Umgebungsvariablen | Browserinstallation erforderlich |
+| **Kosten** | Nutzungsabhängige Abrechnung | Infrastruktur & Wartung |
+| **Am besten geeignet für** | Produktion, Skalierung, Compliance | Entwicklung, Debugging |
+
+<div id="basic-local-setup">
+  ### Lokale Grundeinrichtung
+</div>
+
+<CodeGroup>
+```typescript TypeScript
+import { Stagehand } from "@browserbasehq/stagehand";
+
+const stagehand = new Stagehand({
+  env: "LOCAL"
+});
+  
+await stagehand.init();
+console.log("Session ID:", stagehand.sessionId);
+```
+```python Python
+from stagehand import Stagehand
+
+stagehand = Stagehand(
+    env="LOCAL"
+)
+
+await stagehand.init()
+print(f"Session ID: {stagehand.session_id}")
+```
+</CodeGroup>
+
+<div id="advanced-local-configuration">
+  ### Erweiterte lokale Konfiguration
+</div>
+
+Passe die Startoptionen des Browsers für die lokale Entwicklung an:
+
+<CodeGroup>
+```typescript TypeScript
+import { Stagehand } from "@browserbasehq/stagehand";
+
+const stagehand = new Stagehand({
+  env: "LOCAL",
+  localBrowserLaunchOptions: {
+    headless: false, // Browserfenster anzeigen
+    devtools: true, // Entwicklertools öffnen
+    viewport: { width: 1280, height: 720 },
+    executablePath: '/opt/google/chrome/chrome', // Eigener Chrome-Pfad
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-web-security',
+      '--allow-running-insecure-content',
+    ],
+    env: {
+      NODE_ENV: "development",
+      DEBUG: "true",
+    },
+  },
+});
+
+await stagehand.init();
+```
+```python Python
+from stagehand import Stagehand
+
+stagehand = Stagehand(
+    env="LOCAL",
+    headless=False,  # Browserfenster anzeigen
+    local_browser_launch_options={
+        "devtools": True,  # Entwicklertools öffnen
+        "viewport": {"width": 1280, "height": 720},
+        "executable_path": "/opt/google/chrome/chrome",  # Eigener Chrome-Pfad
+        "args": [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-web-security",
+            "--allow-running-insecure-content",
+        ],
+        "env": {
+            "NODE_ENV": "development",
+            "DEBUG": "true",
+        },
+    },
+)
+
+await stagehand.init()
+```
+</CodeGroup>
+
+<div id="connecting-to-your-local-browser">
+  ### Verbindung mit Ihrem lokalen Browser
+</div>
+
+Stellen Sie eine Verbindung zu Ihrem vorhandenen lokalen Chrome-/Chromium-Browser her, anstatt einen neuen zu starten. So können Sie Ihren gewohnten Browser mit all Ihren geöffneten Tabs, Erweiterungen und Einstellungen automatisieren.
+
+<CodeGroup>
+```typescript TypeScript
+import { Stagehand } from "@browserbasehq/stagehand";
+
+const stagehand = new Stagehand({
+	env: "LOCAL",
+	localBrowserLaunchOptions: {
+		cdpUrl: 'http://localhost:9222'
+	}
+});
+
+await stagehand.init();
+```
+```python Python
+from stagehand import Stagehand
+
+stagehand = Stagehand(
+    env="LOCAL",
+    local_browser_launch_options={
+      cdp_url="http://localhost:9222"
+    }
+)
+
+await stagehand.init()
+```
+</CodeGroup>
+
+<div id="troubleshooting">
+  ## Problemlösung
+</div>
+
+<div id="common-issues">
+  ### Häufige Probleme
+</div>
+
+<AccordionGroup>
+<Accordion title="Browserbase-Authentifizierungsfehler">
+- Überprüfen Sie, ob Ihre `BROWSERBASE_API_KEY` und `BROWSERBASE_PROJECT_ID` korrekt gesetzt sind
+- Prüfen Sie, ob Ihr API-Schlüssel die erforderlichen Berechtigungen besitzt
+- Stellen Sie sicher, dass Ihr Browserbase-Konto über ausreichendes Guthaben verfügt
+</Accordion>
+
+<Accordion title="Fehlgeschlagener Start des lokalen Browsers">
+- Installieren Sie Chrome oder Chromium auf Ihrem System
+- Setzen Sie den korrekten `executablePath` für Ihre Chrome-Installation
+- Prüfen Sie, ob alle erforderlichen Abhängigkeiten installiert sind (Linux: `libnss3-dev libatk-bridge2.0-dev libgtk-3-dev libxss1 libasound2`)
+</Accordion>
+
+<Accordion title="Probleme mit Sitzungs-Timeouts">
+- Erhöhen Sie das Sitzungs-Timeout in `browserbaseSessionCreateParams.timeout`
+- Verwenden Sie `keepAlive: true` für lang laufende Sitzungen
+- Überwachen Sie die Nutzung der Sitzung, um unerwartete Beendigungen zu vermeiden
+</Accordion>
+</AccordionGroup>

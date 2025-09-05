@@ -1,0 +1,180 @@
+---
+title: Stagehand in Next.js verwenden
+sidebarTitle: Konfiguration
+description: Next.js ist ein beliebtes Framework für die Entwicklung produktionsreifer Webanwendungen. Es treibt Stagehand‑Apps wie [Director](https://director.ai), [Brainrot](https://brainrot.run) und [Open Operator](https://operator.browserbase.com) an.
+---
+
+<Card
+  title="Sieh dir das Stagehand Next.js Quickstart an"
+  icon="github"
+  href="https://github.com/browserbase/stagehand-nextjs-quickstart"
+>
+  Klone unser [GitHub-Repository](https://github.com/browserbase/stagehand-nextjs-quickstart), um mit Stagehand in Next.js loszulegen.
+</Card>
+
+<div id="add-stagehand-to-an-existing-nextjs-project">
+  ## Stagehand zu einem bestehenden Next.js‑Projekt hinzufügen
+</div>
+
+Wenn du Stagehand zu einem bestehenden Next.js‑Projekt hinzufügen möchtest, installiere die folgenden Abhängigkeiten:
+
+<Tabs>
+	<Tab title="npm">
+	```bash
+	npm install @browserbasehq/stagehand @browserbasehq/sdk playwright zod
+	```
+	</Tab>
+
+	<Tab title="pnpm">
+	```bash
+	pnpm add @browserbasehq/stagehand @browserbasehq/sdk playwright zod
+	```
+	</Tab>
+
+	<Tab title="yarn">
+	```bash
+	yarn add @browserbasehq/stagehand @browserbasehq/sdk playwright zod
+	```
+	</Tab>
+</Tabs>
+
+<div id="write-a-server-action">
+  ### Eine Server Action schreiben
+</div>
+
+Als Nächstes definieren wir unsere Funktion `main` als Server Action in `app/stagehand/main.ts`. Diese Datei enthält die folgenden drei Funktionen:
+
+1. **`main`: Führt das Hauptskript von Stagehand aus**
+2. **`runStagehand`: Initialisiert und führt die Funktion `main` aus**
+3. **`startBBSSession`: Startet eine Browserbase-Session**
+
+```ts app/stagehand/main.ts
+// 🤘 Welcome to Stagehand!
+// This file is from the [Stagehand docs](https://docs.stagehand.dev/sections/examples/nextjs).
+
+"use server";
+
+import { Stagehand } from "@browserbasehq/stagehand";
+import { z } from "zod/v3";
+import { Browserbase } from "@browserbasehq/sdk";
+
+/**
+ * Run the main Stagehand script
+ */
+async function main(stagehand: Stagehand) {
+  // You can use the `page` instance to write any Playwright code
+  // For more info: https://playwright.dev/docs/pom
+  const page = stagehand.page;
+
+  // In this example, we'll get the title of the Stagehand quickstart page
+  await page.goto("https://docs.stagehand.dev/");
+  await page.act("click the quickstart link");
+  const { title } = await page.extract({
+    instruction: "extract the main heading of the page",
+    schema: z.object({
+      title: z.string(),
+    }),
+  });
+
+  return title;
+}
+
+/**
+ * Initialize and run the main() function
+ */
+export async function runStagehand(sessionId?: string) {
+  const stagehand = new Stagehand({
+    env: "BROWSERBASE",
+    apiKey: process.env.BROWSERBASE_API_KEY,
+    projectId: process.env.BROWSERBASE_PROJECT_ID,
+    verbose: 1,
+    logger: console.log,
+    browserbaseSessionID: sessionId,
+    disablePino: true,
+  });
+  await stagehand.init();
+  await main(stagehand);
+  await stagehand.close();
+}
+
+/**
+ * Start a Browserbase session
+ */
+export async function startBBSSession() {
+  const browserbase = new Browserbase();
+  const session = await browserbase.sessions.create({
+    projectId: process.env.BROWSERBASE_PROJECT_ID!,
+  });
+  const debugUrl = await browserbase.sessions.debug(session.id);
+  return {
+    sessionId: session.id,
+    debugUrl: debugUrl.debuggerFullscreenUrl,
+  };
+}
+```
+
+<div id="create-a-client-component">
+  ### Eine Client-Komponente erstellen
+</div>
+
+Als Nächstes erstellen wir eine Client-Komponente, die eine Browserbase-Session startet und die Funktion `main` mit den soeben definierten Server Actions ausführt. Zuerst starten wir eine Browserbase-Session und betten sie in ein iframe ein, bevor wir die Funktion `main` ausführen.
+
+```tsx app/components/stagehandEmbed.tsx
+"use client";
+
+import { useCallback, useState } from "react";
+import { runStagehand, startBBSSession } from "@/app/stagehand/main";
+
+export function StagehandEmbed() {
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [debugUrl, setDebugUrl] = useState<string | null>(null);
+
+  const startSession = useCallback(async () => {
+    const { sessionId, debugUrl } = await startBBSSession();
+    setSessionId(sessionId);
+    setDebugUrl(debugUrl);
+    await runStagehand(sessionId);
+  }, []);
+
+  return (
+    <div>
+      {!sessionId && <button onClick={startSession}>Session starten</button>}
+      {sessionId && debugUrl && (
+        <iframe src={debugUrl} className="w-full h-full" />
+      )}
+    </div>
+  );
+}
+```
+
+<div id="use-the-stagehandembed-component">
+  ### Verwenden der Komponente `StagehandEmbed`
+</div>
+
+Nun können wir die Komponente `StagehandEmbed` in unserer App verwenden.
+
+```tsx app/page.tsx
+import { StagehandEmbed } from "@/app/components/stagehandEmbed";
+
+export default function Home() {
+	return (
+		<main>
+			<StagehandEmbed />
+		</main>
+	)
+}
+```
+
+<div id="references">
+  ## Referenzen
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Deploy Template" icon="rocket" href="https://vercel.com/templates/ai/stagehand-next-js-quickstart">
+    Stagehand‑Next.js‑Template mit einem Klick auf Vercel deployen
+  </Card>
+  
+  <Card title="Source Code" icon="github" href="https://github.com/browserbase/stagehand-nextjs-quickstart">
+    Komplettes Template‑Repository auf GitHub ansehen
+  </Card>
+</CardGroup>

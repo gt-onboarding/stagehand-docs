@@ -1,0 +1,621 @@
+---
+title: KI-Regeln
+description: Mit KI Stagehand-Code schneller und besser schreiben.
+---
+
+Sie verwenden wahrscheinlich KI, um Code zu schreiben – und es gibt einen **richtigen und einen falschen Weg dafür.** Diese Seite bündelt Regeln, Konfigurationen und Copy‑Paste‑Snippets, damit Ihre KI‑Agenten/Assistenten möglichst schnell performanten Stagehand‑Code schreiben können. 
+
+<div id="quickstart">
+  ## Schnellstart
+</div>
+
+<CardGroup cols={2}>
+  <Card title="MCP-Server hinzufügen" icon="screwdriver-wrench">
+    Konfiguriere Browserbase (Stagehand), Context7, DeepWiki und die Stagehand-Dokumentation in deinem MCP-Client. 
+  </Card>
+  <Card title="Editor-Regeln anpinnen" icon="memo">
+    Füge `cursorrules` und `claude.md` hinzu, damit KI-Agenten/-Assistenten konsequent Stagehand-Patterns erzeugen. 
+  </Card>
+</CardGroup>
+
+<div id="using-mcp-servers">
+  ## Verwendung von MCP-Servern
+</div>
+
+MCP-Server (Model Context Protocol) fungieren als Vermittler, die KI-Systeme mit externen Datenquellen und Tools verbinden. Diese Server ermöglichen es Ihrem Coding-Assistenten, in Echtzeit auf Informationen zuzugreifen, Aufgaben auszuführen und strukturierte Daten abzurufen, um die Genauigkeit der Codegenerierung zu verbessern.
+
+Die folgenden **MCP-Server** bieten spezialisierten Zugriff auf die Stagehand-Dokumentation und verwandte Ressourcen:
+
+<Accordion title="Context7 by Upstash" icon="database">
+Bietet semantische Suche über Dokumentation und den Kontext der Codebasis. Context7 hilft KI-Assistenten, relevante Code‑Patterns, Beispiele und Implementierungsdetails aus Ihrer Projekthistorie zu finden. Es bewahrt das kontextuelle Verständnis Ihres Entwicklungs-Workflows und kann verwandte Lösungen aus früheren Arbeiten hervorheben.
+
+**Installation:**
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    }
+  }
+}
+```
+</Accordion>
+
+<Accordion title="DeepWiki by Cognition" icon="book-open">
+Bietet tiefgehendes Indexieren von GitHub-Repositories und Dokumentation. DeepWiki ermöglicht KI-Agenten, die Projektarchitektur, API-Referenzen und Best Practices aus dem gesamten Stagehand-Ökosystem zu verstehen. Es liefert umfassendes Wissen über Repository-Struktur, Codebeziehungen und Entwicklungsmuster.
+
+**Installation:**
+```json
+{
+  "mcpServers": {
+    "deepwiki": {
+      "url": "https://mcp.deepwiki.com/mcp"
+    }
+  }
+}
+```
+</Accordion>
+
+<Accordion title="Stagehand Docs by Mintlify" icon="mintbit">
+Direkter Zugriff auf die offizielle Stagehand-Dokumentation. Dieser MCP-Server stellt KI-Assistenten aktuelle API-Referenzen, Konfigurationsoptionen und Anwendungsbeispiele für eine präzise Codegenerierung bereit. Mintlify generiert diesen Server automatisch aus den offiziellen Docs, sodass Ihr KI-Assistent stets über die neuesten Informationen verfügt.
+
+**Verwendung:**
+```json
+{
+  "mcpServers": {
+    "stagehand-docs": {
+      "url": "https://docs.stagehand.dev/mcp"
+    }
+  }
+}
+```
+</Accordion>
+
+**Wie MCP-Server Ihre Entwicklung verbessern:**
+
+- **Dokumentationszugriff in Echtzeit**: KI-Assistenten können die neuesten Stagehand-Docs, Beispiele und Best Practices abfragen
+- **Kontextbewusste Codegenerierung**: Server liefern relevante Code‑Patterns und Konfigurationen basierend auf Ihrem spezifischen Anwendungsfall
+- **Reduzierter Integrationsaufwand**: Ein standardisiertes Protokoll macht individuelle Integrationen mit jeder Dokumentationsquelle überflüssig
+- **Höhere Genauigkeit**: KI-Agenten erhalten strukturierte, aktuelle Informationen, statt sich auf möglicherweise veraltete Trainingsdaten zu verlassen
+
+<Tip>
+**Prompting-Tipp:** 
+Bitten Sie Ihren Coding-Agenten/-Assistenten ausdrücklich, diese MCP-Server zu verwenden, um relevante Informationen aus den Docs abzurufen, damit er besseren Kontext hat und weiß, wie man korrekten Stagehand-Code schreibt. 
+
+z. B. **„Use the stagehand-docs MCP to fetch the act/observe guidelines, then generate code that follows them. Prefer cached observe results.“**
+</Tip>
+
+<div id="editor-rule-files-copypaste">
+  ## Editor-Regeldateien (Copy & Paste)
+</div>
+
+Lege diese in `.cursorrules`, `windsurfrules`, `claude.md` oder einem beliebigen Agenten-Regel-Framework ab:
+
+<Accordion title="TypeScript">
+  ````md
+  # Stagehand-Projekt
+
+  Dies ist ein Projekt, das [Stagehand](https://github.com/browserbase/stagehand) verwendet und Playwright durch KI-gestützte Methoden `act`, `extract` und `observe` erweitert, die zur Page-Klasse hinzugefügt werden.
+
+  `Stagehand` ist eine Klasse, die Konfigurations- und Browserautomatisierungsfunktionen bereitstellt mit:
+  - `stagehand.page`: Ein StagehandPage-Objekt (erweitert Playwright Page)
+  - `stagehand.context`: Ein StagehandContext-Objekt (erweitert Playwright BrowserContext)
+  - `stagehand.agent()`: KI-gestützte Agents für autonome mehrstufige Workflows erstellen
+  - `stagehand.init()`: Die Browsersitzung initialisieren
+  - `stagehand.close()`: Ressourcen bereinigen
+
+  `Page` erweitert die Page-Klasse von Playwright um KI-gestützte Methoden:
+  - `act()`: Aktionen auf Webelementen in natürlicher Sprache ausführen
+  - `extract()`: Strukturierte Daten aus Seiten mithilfe von Schemas extrahieren
+  - `observe()`: Aktionen planen und Selektoren vor der Ausführung ermitteln
+
+  `Agent` bietet autonome Computer-Use-Agent-Funktionen:
+  - `execute()`: Komplexe, mehrstufige Aufgaben anhand natürlicher Sprachinstruktionen ausführen
+
+  `Context` erweitert die BrowserContext-Klasse von Playwright für das Management der Browsersitzung.
+
+  Befolgen Sie die folgenden Regeln, um Code für dieses Projekt zu schreiben.
+
+  - Um eine Anweisung wie „Klicke auf die Anmelden-Schaltfläche“ zu planen, verwenden Sie Stagehand `observe`, um die auszuführende Aktion zu ermitteln.
+
+  ```typescript
+  const results = await page.observe("Click the sign in button");
+  ```
+
+  Sie können auch die folgenden Parameter übergeben:
+
+  ```typescript
+  await page.observe({
+    instruction: "the instruction to execute",
+    returnAction: true 
+  });
+  ```
+
+  - Das Ergebnis von `observe` ist ein Array von `ObserveResult`-Objekten, das direkt als Parameter für `act` wie folgt verwendet werden kann:
+    ```typescript
+    const results = await page.observe({
+      instruction: "the instruction to execute",
+      returnAction: true, // die auszuführende Aktion zurückgeben
+    });
+
+    await page.act(results[0]);
+    ```
+    
+  - Wenn Sie Code schreiben, der Daten von der Seite extrahieren soll, verwenden Sie Stagehand `extract`. Übergeben Sie standardmäßig explizit die folgenden Parameter:
+
+  ```typescript
+  const { someValue } = await page.extract({
+    instruction: "the instruction to execute",
+    schema: z.object({
+      someValue: z.string(),
+    }), // Das zu extrahierende Schema
+  });
+  ```
+
+  ## Initialisieren
+
+  ```typescript
+  import { Stagehand, Page, BrowserContext } from "@browserbasehq/stagehand";
+
+  const stagehand = new Stagehand({
+    env: "BROWSERBASE"
+  });
+
+  await stagehand.init();
+
+  const page = stagehand.page; // Playwright Page mit act-, extract- und observe-Methoden
+
+  const context = stagehand.context; // Playwright BrowserContext
+  ```
+  ### Konfigurationsoptionen
+  ```typescript
+  const StagehandConfig = {
+    env: "BROWSERBASE" | "LOCAL", // Ausführungsumgebung
+    apiKey: process.env.BROWSERBASE_API_KEY, // Browserbase-API-Schlüssel
+    projectId: process.env.BROWSERBASE_PROJECT_ID, // Browserbase-Projekt-ID
+    debugDom: true, // DOM-Debugging-Funktionen aktivieren
+    headless: false, // Browser im Headless-Modus ausführen
+    domSettleTimeoutMs: 30_000, // Timeout, bis sich der DOM beruhigt
+    enableCaching: true, // Aktions-Caching aktivieren
+    modelName: "gpt-4o", // Zu verwendendes KI-Modell
+    modelClientOptions: {
+      apiKey: process.env.OPENAI_API_KEY, // OpenAI-API-Schlüssel
+    },
+  };
+  ```
+  ## Act
+
+  Sie können direkt mit stringbasierten Anweisungen agieren:
+
+  ```typescript
+  await page.act("Klicke auf die Anmelden-Schaltfläche");
+  ```
+
+  Verwenden Sie Variablen für das dynamische Ausfüllen von Formularen:
+
+  ```typescript
+  await page.act({
+    action: `Geben Sie die folgenden Informationen ein:
+      Name: %name%
+      E‑Mail: %email%
+      Telefon: %phone%`,
+    variables: {
+      name: "John Doe",
+      email: "john@example.com", 
+      phone: "+1-555-0123"
+    }
+  });
+  ```
+
+  **Best Practices:**
+  - Cachen Sie die Ergebnisse von `observe`, um unerwartete DOM-Änderungen zu vermeiden
+  - Halten Sie Aktionen atomar und spezifisch (z. B. „Klicke auf die Anmelden-Schaltfläche“ statt „Auf der Website anmelden“)
+  - Verwenden Sie Variablenersetzung für dynamische Dateneingabe
+
+  Die `action` in Act sollte so atomar und spezifisch wie möglich sein, z. B. „Klicke auf die Anmelden-Schaltfläche“ oder „Tippe ‚hello‘ in das Suchfeld“.
+  VERMEIDEN Sie Aktionen, die mehr als einen Schritt umfassen, z. B. „Bestelle mir Pizza“ oder „Sende Paul eine E-Mail und bitte ihn, mich anzurufen“.
+
+  ## Extract
+
+  ### Einfache String-Extraktion
+
+  ```typescript
+  const signInButtonText = await page.extract("extrahiere den Text der Anmelden-Schaltfläche");
+  ```
+
+  ### Strukturierte Extraktion mit Schema (empfohlen)
+
+  Verwenden Sie für die strukturierte Datenextraktion stets Zod-Schemas:
+
+  ```typescript
+  import { z } from "zod";
+
+  const data = await page.extract({
+    instruction: "Text der Anmelden-Schaltfläche extrahieren",
+    schema: z.object({
+      text: z.string(),
+    }),
+  });
+  ```
+
+  ### Array-Extraktion
+
+  Um mehrere Elemente zu extrahieren, das Array in ein einzelnes Objekt kapseln:
+
+  ```typescript
+  const data = await page.extract({
+    instruction: "Den Text aller Schaltflächen extrahieren",
+    schema: z.object({
+      buttons: z.array(z.string()),
+    })
+  });
+  ```
+
+  ### Extraktion komplexer Objekte
+
+  Für komplexere Datenstrukturen:
+
+  ```typescript
+  const productData = await page.extract({
+    instruction: "Produktinformationen von dieser Seite extrahieren",
+    schema: z.object({
+      title: z.string(),
+      price: z.number(),
+      description: z.string(),
+      features: z.array(z.string()),
+      availability: z.boolean(),
+    }),
+  });
+  ```
+
+  ### Schema-Validierung
+
+  ```typescript
+  import { validateZodSchema } from "./utils.js";
+  import { z } from "zod";
+
+  const schema = z.object({ name: z.string() });
+  const isValid = validateZodSchema(schema, { name: "John" }); // true
+  ```
+
+  ## Agentensystem
+
+  Stagehand stellt ein Agentensystem für autonomes Web-Browsing mit Computer-Use-Agents (CUA) bereit. Agents führen mehrstufige Workflows anhand natürlicher Sprachinstruktionen aus.
+
+  ### Agents erstellen
+
+  ```typescript
+  // Einfacher Agent (Standard)
+  const agent = stagehand.agent();
+
+  // OpenAI-Agent
+  const agent = stagehand.agent({
+    provider: "openai",
+    model: "computer-use-preview",
+    instructions: "You are a helpful assistant that can use a web browser.",
+    options: { 
+      apiKey: process.env.OPENAI_API_KEY 
+    }
+  });
+
+  // Anthropic-Agent
+  const agent = stagehand.agent({
+    provider: "anthropic", 
+    model: "claude-sonnet-4-20250514",
+    instructions: "You are a helpful assistant that can use a web browser.",
+    options: { 
+      apiKey: process.env.ANTHROPIC_API_KEY 
+    }
+  });
+  ```
+  ### Agent-Ausführung
+  ```typescript
+  // Einfache Aufgabe
+  const result = await agent.execute("Den Titel dieser Webseite extrahieren");
+
+  // Komplexe mehrstufige Aufgabe
+  const result = await agent.execute({
+    instruction: "Mit Mock-Daten auf die erste Ingenieurstelle bewerben",
+    maxSteps: 20,
+    autoScreenshot: true
+  });
+  ```
+
+  ### Best Practices
+  - Sei präzise mit Anweisungen: `"Fülle das Kontaktformular mit dem Namen 'John Doe' aus und sende es ab"`
+  - Zerlege komplexe Aufgaben in kleinere Schritte
+  - Verwende Fehlerbehandlung mit try/catch-Blöcken
+  - Kombiniere Agents für die Navigation mit klassischen Methoden für präzise Datenextraktion
+
+  ```typescript
+  // Gut: Präzise Anweisungen
+  await agent.execute("Zur Produktseite navigieren und nach 'Elektronik' filtern");
+
+  // Vermeiden: Vage Anweisungen  
+  await agent.execute("Mach irgendwelche Sachen auf dieser Seite");
+  ```
+
+  ## Best Practices für die Projektstruktur
+
+  - Konfigurationen in `stagehand.config.ts` speichern
+  - Umgebungsvariablen für API-Schlüssel verwenden (siehe `.env.example`)
+  - Hauptautomatisierungslogik in Funktionen implementieren, die `{ page, context, stagehand }` akzeptieren
+  - TypeScript mit korrekten Imports aus `@browserbasehq/stagehand` verwenden
+  ````
+</Accordion>
+
+<Accordion title="Python">
+  ````md
+  # Stagehand Python-Projekt
+
+  Dies ist ein Projekt, das [Stagehand Python](https://github.com/browserbase/stagehand-python) verwendet, das KI-gestützte Browserautomatisierung mit den Methoden `act`, `extract` und `observe` bereitstellt.
+
+  `Stagehand` ist eine Klasse, die Konfigurations- und Browserautomatisierungsfunktionen bereitstellt mit:
+  - `stagehand.page`: Ein StagehandPage-Objekt (erweitert Playwright Page)
+  - `stagehand.context`: Ein StagehandContext-Objekt (erweitert Playwright BrowserContext)
+  - `stagehand.agent()`: KI-gestützte Agents für autonome Workflows mit mehreren Schritten erstellen
+  - `stagehand.init()`: Die Browsersitzung initialisieren
+  - `stagehand.close()`: Ressourcen bereinigen
+
+  `Page` erweitert Playwrights Page-Klasse um KI-gestützte Methoden:
+  - `act()`: Aktionen an Webelementen in natürlicher Sprache ausführen
+  - `extract()`: Strukturierte Daten mittels Schemata aus Seiten extrahieren
+  - `observe()`: Aktionen planen und Selektoren vor der Ausführung ermitteln
+
+  `Agent` bietet autonome Computer-Use-Agent-Funktionen:
+  - `execute()`: Komplexe Aufgaben mit mehreren Schritten anhand natürlicher Sprachinstruktionen ausführen
+
+  Verwenden Sie die folgenden Regeln, um Code für dieses Projekt zu schreiben.
+
+  - Um eine Anweisung wie „Klicke auf die Anmelden-Schaltfläche“ zu planen, verwenden Sie Stagehand `observe`, um die auszuführende Aktion zu erhalten.
+
+  ```python
+  results = await page.observe("Click the sign in button")
+  ```
+
+  Sie können auch die folgenden Parameter übergeben:
+
+  ```python
+  await page.observe(
+      instruction="the instruction to execute",
+      draw_overlay=True  # Visuelles Overlay auf beobachteten Elementen anzeigen
+  )
+  ```
+
+  - Das Ergebnis von `observe` ist eine Liste von `ObserveResult`-Objekten, die direkt als Parameter für `act` wie folgt verwendet werden können:
+    ```python
+    results = await page.observe("Click the sign in button")
+    await page.act(results[0])
+    ```
+  - Wenn Sie Code schreiben, der Daten aus der Seite extrahieren muss, verwenden Sie Stagehand `extract`. Verwenden Sie für Schemata Pydantic-Modelle:
+
+  ```python
+  from pydantic import BaseModel
+
+  class ExtractedData(BaseModel):
+      some_value: str
+
+  result = await page.extract(
+      instruction="the instruction to execute",
+      schema=ExtractedData
+  )
+  ```
+
+  ## Initialisieren
+
+  ```python
+  from stagehand import Stagehand, StagehandConfig
+  import asyncio
+  import os
+  from dotenv import load_dotenv
+
+  load_dotenv()
+
+  async def main():
+      config = StagehandConfig(
+          env="BROWSERBASE",  # or "LOCAL"
+          api_key=os.getenv("BROWSERBASE_API_KEY"),
+          project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+          model_name="google/gemini-2.5-flash-preview-05-20",
+          model_api_key=os.getenv("MODEL_API_KEY"),
+      )
+      
+      # Empfohlen: Als asynchronen Context Manager verwenden
+      async with Stagehand(config) as stagehand:
+          page = stagehand.page
+          # Ihr Automatisierungscode hier
+          
+      # Alternative: Manuelle Initialisierung
+      stagehand = Stagehand(config)
+      await stagehand.init()
+      page = stagehand.page
+      # Ihr Automatisierungscode hier
+      await stagehand.close()
+
+  if __name__ == "__main__":
+      asyncio.run(main())
+  ```
+
+  ### Konfigurationsoptionen
+
+  Wichtige Konfigurationsoptionen in `StagehandConfig`:
+
+  ```python
+  config = StagehandConfig(
+      env="BROWSERBASE",  # or "LOCAL"
+      api_key=os.getenv("BROWSERBASE_API_KEY"),
+      project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+      model_name="google/gemini-2.5-flash-preview-05-20",
+      model_api_key=os.getenv("MODEL_API_KEY"),
+      verbose=1,  # 0=minimal, 1=mittel, 2=ausführlich
+      dom_settle_timeout_ms=30000,
+      self_heal=True,  # Selbstheilungsfunktion aktivieren
+  )
+  ```
+
+  ## Act
+
+  Sie können direkt mit String-Anweisungen agieren:
+
+  ```python
+  await page.act("Click the sign in button")
+  ```
+
+  Verwenden Sie Variablen für das dynamische Ausfüllen von Formularen:
+
+  ```python
+  await page.act(
+      "Enter the following information: Name: John Doe, Email: john@example.com"
+  )
+  ```
+
+  **Bewährte Vorgehensweisen:**
+  - Zwischenspeichern der Ergebnisse von `observe`, um unerwartete DOM-Änderungen zu vermeiden
+  - Aktionen atomar und spezifisch halten (z. B. „Klicke auf die Anmelden-Schaltfläche“ statt „Melde dich auf der Website an“)
+  - Verwenden Sie spezifische, beschreibende Anweisungen
+
+  Die Act-`action` sollte so atomar und spezifisch wie möglich sein, d. h. „Klicke auf die Anmelden-Schaltfläche“ oder „Tippe ‚hello‘ in das Suchfeld“.
+  VERMEIDEN Sie Aktionen, die mehr als einen Schritt umfassen, z. B. „Bestelle mir Pizza“ oder „Sende eine E‑Mail an Paul und bitte ihn, mich anzurufen“.
+
+  ## Extract
+
+  ### Einfache String-Extraktion
+  ```python
+  sign_in_button_text = await page.extract("extrahiere den Text der Anmelden-Schaltfläche")
+  ```
+
+  ### Strukturierte Extraktion mit Schema (Empfohlen)
+  Verwenden Sie für die Extraktion strukturierter Daten immer Pydantic-Modelle:
+
+  ```python
+  from pydantic import BaseModel, Field
+  from typing import List
+
+  class ButtonData(BaseModel):
+      text: str = Field(..., description="Schaltflächentext")
+
+  data = await page.extract(
+      instruction="den Text der Anmelde-Schaltfläche extrahieren",
+      schema=ButtonData
+  )
+  ```
+
+  ### Array-Extraktion
+  Für Arrays verwenden Sie List-Typen:
+
+  ```python
+  from pydantic import BaseModel, Field
+  from typing import List
+
+  class ButtonsData(BaseModel):
+      buttons: List[str] = Field(..., description="Liste der Schaltflächentexte")
+
+  data = await page.extract(
+      instruction="den Text in allen Schaltflächen extrahieren",
+      schema=ButtonsData
+  )
+  ```
+
+  ### Extraktion komplexer Objekte
+  Für komplexere Datenstrukturen:
+
+  ```python
+  from pydantic import BaseModel, Field
+  from typing import List
+
+  class Company(BaseModel):
+      name: str = Field(..., description="Unternehmensname")
+      description: str = Field(..., description="Kurze Unternehmensbeschreibung")
+
+  class Companies(BaseModel):
+      companies: List[Company] = Field(..., description="Liste von Unternehmen")
+
+  companies_data = await page.extract(
+      "Namen und Beschreibungen von 5 Unternehmen extrahieren",
+      schema=Companies
+  )
+  ```
+
+  ## Agent-System
+
+  Stagehand bietet ein Agent-System für autonomes Web-Browsing mit Computer-Use-Agents (CUA).
+
+  ### Agents erstellen
+
+  ```python
+  # Einfacher Agent (verwendet das Standardmodell)
+  agent = stagehand.agent()
+
+  # OpenAI-Agent
+  agent = stagehand.agent(
+      model="computer-use-preview",
+      instructions="Du bist ein hilfreicher Assistent für die Webnavigation.",
+      options={"apiKey": os.getenv("OPENAI_API_KEY")}
+  )
+
+  # Anthropic-Agent
+  agent = stagehand.agent(
+      model="claude-sonnet-4-20250514",
+      instructions="Du bist ein hilfreicher Assistent für die Webnavigation.",
+      options={"apiKey": os.getenv("ANTHROPIC_API_KEY")}
+  )
+  ```
+
+  ### Agent-Ausführung
+
+  ```python
+  # Einfache Aufgabe
+  result = await agent.execute("Spiele eine Runde 2048")
+
+  # Komplexe Aufgabe mit mehreren Schritten und Optionen
+  result = await agent.execute(
+      instruction="Bewirb dich mit Mock-Daten auf die erste Ingenieurstelle",
+      max_steps=20,
+      auto_screenshot=True,
+      wait_between_actions=1000  # Millisekunden
+  )
+  ```
+
+  **Bewährte Praktiken:**
+  - Formulieren Sie Anweisungen konkret: `"Fülle das Kontaktformular mit dem Namen 'John Doe' aus und sende es ab"`
+  - Zerlegen Sie komplexe Aufgaben in kleinere Schritte
+  - Verwenden Sie Fehlerbehandlung mit try/except-Blöcken
+  - Kombinieren Sie Agents für die Navigation mit traditionellen Methoden für präzise Datenextraktion
+
+  ```python
+  # Gut: Konkrete Anweisungen
+  await agent.execute("Navigiere zur Produktseite und filtere nach 'Elektronik'")
+
+  # Vermeiden: Vage Anweisungen
+  await agent.execute("Mach irgendwas auf dieser Seite")
+  ```
+
+  ## Bewährte Praktiken für die Projektstruktur
+
+  - Speichern Sie Konfigurationen in Umgebungsvariablen oder Konfigurationsdateien
+  - Verwenden Sie durchgängig async/await-Muster
+  - Implementieren Sie die zentrale Automatisierungslogik in async-Funktionen
+  - Verwenden Sie asynchrone Kontextmanager für das Ressourcenmanagement
+  - Nutzen Sie Type-Hints und Pydantic-Modelle zur Datenvalidierung
+  - Behandeln Sie Ausnahmen angemessen mit try/except-Blöcken
+  ````
+</Accordion>
+
+<div id="security-notes">
+  ## Sicherheitshinweise
+</div>
+
+- Keine Secrets in Dokumentation oder Regeldateien hinterlegen; stattdessen Umgebungsvariablen in MCP‑Konfigurationen verwenden.
+- Vermeiden Sie weit gefasste Aktionen, die unbeabsichtigte Navigation auslösen könnten; setzen Sie zunächst auf `observe`.
+
+<div id="resourcesreferences">
+  ## Ressourcen/Referenzen
+</div>
+
+- Context7 MCP (Upstash)
+  - https://github.com/upstash/context7
+- DeepWiki MCP
+  - https://mcp.deepwiki.com/
+- Stagehand Docs MCP (Mintlify)
+  - https://docs.stagehand.dev/mcp

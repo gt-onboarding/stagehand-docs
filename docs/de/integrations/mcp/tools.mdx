@@ -1,0 +1,258 @@
+---
+title: "Browserbase MCP-Server-Tools"
+sidebarTitle: "Tools"
+description: "Dieser Leitfaden beschreibt die spezialisierten Tools des Browserbase‑MCP‑Servers für Browserautomatisierung und Interaktion."
+---
+
+<div id="overview">
+  ## Überblick
+</div>
+
+Der Browserbase MCP‑Server bietet umfassende Tools für die Browserautomatisierung und Sitzungsverwaltung. Diese Tools ermöglichen Aktionen wie das Navigieren durch Seiten, das Erstellen von Screenshots, das Bearbeiten von Cookies und das gleichzeitige Verwalten mehrerer Browsersitzungen.
+
+<div id="core-browser-automation-tools">
+  ## Zentrale Tools für Browser-Automatisierung
+</div>
+
+Dies sind die wichtigsten Tools für moderne Webautomatisierung mit natürlichen Sprachbefehlen.
+
+<Accordion title="browserbase_stagehand_navigate">
+Zu einer beliebigen URL im Browser navigieren
+
+<ParamField path="url" type="string" required>
+  Die URL, zu der navigiert werden soll
+</ParamField>
+</Accordion>
+
+<Accordion title="browserbase_stagehand_act">
+Eine Aktion auf der Webseite in natürlicher Sprache ausführen
+
+<ParamField path="action" type="string" required>
+  Die auszuführende Aktion (z. B. „auf den Login‑Button klicken“, „Formularfeld ausfüllen“)
+</ParamField>
+
+</Accordion>
+
+<Accordion title="browserbase_stagehand_extract">
+Gesamten Textinhalt der aktuellen Seite extrahieren (CSS und JavaScript werden herausgefiltert)
+
+<Info>Keine Eingabeparameter erforderlich</Info>
+</Accordion>
+
+<Accordion title="browserbase_stagehand_observe">
+Elemente auf der Webseite erkennen und handlungsrelevante finden
+
+<ParamField path="instruction" type="string" required>
+  Konkrete Anweisung für die Beobachtung (z. B. „den Login‑Button finden“, „Suchformular lokalisieren“)
+</ParamField>
+
+</Accordion>
+
+<Accordion title="browserbase_screenshot">
+Einen PNG‑Screenshot der aktuellen Seite erstellen
+
+<Info>Keine Eingabeparameter erforderlich</Info>
+
+<ResponseField name="image" type="string">
+  Base64‑codierte PNG‑Daten
+</ResponseField>
+</Accordion>
+
+<Accordion title="browserbase_stagehand_get_url">
+Die aktuelle URL der Browserseite abrufen
+
+<Info>Keine Eingabeparameter erforderlich</Info>
+
+<ResponseField name="url" type="string">
+  Vollständige URL einschließlich Protokoll, Domain, Pfad sowie etwaiger Query‑Parameter oder Fragmente
+</ResponseField>
+</Accordion>
+
+<Accordion title="browserbase_stagehand_get_all_urls">
+Aktuelle URLs aller aktiven Browsersitzungen abrufen
+
+<Info>Keine Eingabeparameter erforderlich</Info>
+
+<ResponseField name="sessionUrls" type="object">
+  Zuordnung von Sitzungs‑IDs zu ihren aktuellen URLs im JSON‑Format
+</ResponseField>
+</Accordion>
+
+<div id="single-session-management">
+  ## Verwaltung einer einzelnen Sitzung
+</div>
+
+Traditioneller Ansatz mit einer aktiven Browsersitzung. Einfacher für grundlegende Automatisierungsaufgaben und verwaltet die aktive Sitzung automatisch.
+
+<Accordion title="browserbase_session_create">
+Cloud‑Browsersitzung mit Browserbase erstellen oder wiederverwenden, mit vollständig initialisiertem Stagehand
+</Accordion>
+
+<ParamField path="sessionId" type="string">
+  Optionale Sitzungs-ID zur Verwendung bzw. Wiederverwendung. Wenn nicht angegeben, wird eine neue Sitzung erstellt
+</ParamField>
+
+<Accordion title="browserbase_session_close">
+Aktuelle Browserbase‑Sitzung schließen, den Browser trennen und die Stagehand‑Instanz bereinigen
+
+<Info>Keine Eingabeparameter erforderlich</Info>
+
+</Accordion>
+
+<div id="multi-session-management">
+  ## Multi-Session-Management
+</div>
+
+Erweiterter Ansatz mit mehreren parallelen Browsersitzungen für komplexe Automatisierungs-Workflows. Jede Sitzung führt ihren eigenen Zustand, eigene Cookies und einen separaten Browserkontext.
+
+<div id="session-lifecycle-management">
+  ### Verwaltung des Sitzungslebenszyklus
+</div>
+
+<Accordion title="multi_browserbase_stagehand_session_create">
+Erstellen Sie eine neue, unabhängige Stagehand‑Browsersitzung mit vollständigen Web‑Automatisierungsfunktionen
+
+<ParamField path="name" type="string">
+  Menschlich lesbarer Name zur Nachverfolgung (z. B. „login-flow“, „data-scraping“)
+</ParamField>
+</Accordion>
+
+<Accordion title="multi_browserbase_stagehand_session_list">
+Alle aktuell aktiven Stagehand‑Browsersitzungen mit detaillierten Metadaten auflisten
+
+<Info>Keine Eingabeparameter erforderlich</Info>
+
+</Accordion>
+
+<Accordion title="multi_browserbase_stagehand_session_close">
+Eine bestimmte Stagehand‑Browsersitzung schließen und bereinigen
+
+<ParamField path="sessionId" type="string" required>
+  Exakte Sitzungs‑ID, die geschlossen werden soll (kann nicht rückgängig gemacht werden)
+</ParamField>
+</Accordion>
+
+<div id="session-specific-automation-tools">
+  ### Sitzungsspezifische Automatisierungs-Tools
+</div>
+
+Alle Kern-Tools zur Browser-Automatisierung sind auch in sitzungsspezifischen Varianten verfügbar:
+
+<Accordion title="multi_browserbase_stagehand_navigate_session">
+Zu einer URL in einer bestimmten Browsersitzung navigieren
+
+<ParamField path="sessionId" type="string" required>
+  Die zu verwendende Sitzungs-ID
+</ParamField>
+
+<ParamField path="url" type="string" required>
+  Die Ziel-URL
+</ParamField>
+</Accordion>
+
+<Accordion title="multi_browserbase_stagehand_act_session">
+In einer bestimmten Browsersitzung mithilfe natürlicher Sprache eine Aktion ausführen
+
+<ParamField path="sessionId" type="string" required>
+  Die zu verwendende Sitzungs-ID
+</ParamField>
+
+<ParamField path="action" type="string" required>
+  Die auszuführende Aktion
+</ParamField>
+
+</Accordion>
+
+<Accordion title="multi_browserbase_stagehand_extract_session">
+Strukturierte Informationen aus einer bestimmten Browsersitzung extrahieren
+
+<ParamField path="sessionId" type="string" required>
+  Die zu verwendende Sitzungs-ID
+</ParamField>
+
+<ParamField path="instruction" type="string" required>
+  Was von der Seite extrahiert werden soll
+</ParamField>
+</Accordion>
+
+<Accordion title="multi_browserbase_stagehand_observe_session">
+In einer bestimmten Browsersitzung beobachtbare und umsetzbare Elemente identifizieren
+
+<ParamField path="sessionId" type="string" required>
+  Die zu verwendende Sitzungs-ID
+</ParamField>
+
+<ParamField path="instruction" type="string" required>
+  Was beobachtet werden soll (z. B. „den Login-Button finden“)
+</ParamField>
+
+<ParamField path="returnAction" type="boolean">
+  Ob die auszuführende Aktion zurückgegeben werden soll
+</ParamField>
+</Accordion>
+
+<Accordion title="multi_browserbase_stagehand_get_url_session">
+Die aktuelle URL einer bestimmten Browsersitzung abrufen
+
+<ParamField path="sessionId" type="string" required>
+  Die zu verwendende Sitzungs-ID
+</ParamField>
+
+<ResponseField name="url" type="string">
+  Vollständige URL einschließlich Protokoll, Domain, Pfad sowie aller Query-Parameter oder Fragmente
+</ResponseField>
+</Accordion>
+
+<div id="multi-session-use-cases">
+  ### Anwendungsfälle mit mehreren Sitzungen
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Parallele Datenerfassung" icon="globe">
+    Führen Sie mehrere Scraping‑Sitzungen gleichzeitig auf verschiedenen Websites aus
+  </Card>
+  
+  <Card title="A/B‑Tests" icon="flask">
+    Vergleichen Sie Nutzer‑Flows in unterschiedlichen Browsersitzungen mit variierenden Konfigurationen
+  </Card>
+  
+  <Card title="Websiteübergreifende Abläufe" icon="link">
+    Führen Sie koordinierte Aktionen über mehrere Websites oder Anwendungen hinweg aus
+  </Card>
+  
+  <Card title="Backup‑Sitzungen" icon="shield">
+    Halten Sie Fallback‑Sitzungen bereit, falls primäre Sitzungen auf Probleme stoßen
+  </Card>
+</CardGroup>
+
+<div id="resources">
+  ## Ressourcen
+</div>
+
+<Card title="Screenshot-Ressourcen" icon="camera">
+  Der Server stellt Screenshot-Ressourcen mit URI-basiertem Zugriff bereit. 
+
+  Beispiel: 
+  ```
+  screenshot://screenshot-name-of-the-screenshot
+  ```
+
+</Card>
+
+<div id="further-reading">
+  ## Weiterführende Ressourcen
+</div>
+
+<CardGroup cols={3}>
+<Card title="Model Context Protocol (MCP) – Dokumentation" icon="book" href="https://modelcontextprotocol.io/introduction">
+Erfahren Sie mehr über das MCP‑Protokoll
+</Card>
+
+<Card title="Stagehand‑Dokumentation" icon="robot" href="https://docs.stagehand.dev/">
+Entdecken Sie die KI‑gestützte Browser‑Automatisierung von Stagehand
+</Card>
+
+<Card title="Support" icon="headset" href="mailto:support@browserbase.com">
+Erhalten Sie Unterstützung von unserem Support‑Team
+</Card>
+</CardGroup>

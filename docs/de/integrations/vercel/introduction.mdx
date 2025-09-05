@@ -1,0 +1,73 @@
+---
+title: "Next.js + Vercel"
+sidebarTitle: "Einführung"
+description: "Eine Stagehand‑basierte Next.js‑App auf Vercel erstellen und bereitstellen"
+---
+
+<div id="overview">
+  ## Überblick
+</div>
+
+Der Stagehand + Next.js Quickstart ist eine produktionsreife Vorlage, die Stagehands KI-gestützte Browserautomatisierung mit einer modernen Next.js-App kombiniert und sich mit einem Klick auf Vercel bereitstellen lässt.
+
+<CardGroup cols={3}>
+  <Card title="Vorlage deployen" icon="rocket" href="https://vercel.com/templates/ai/stagehand-next-js-quickstart">
+    Ein-Klick-Deployment auf Vercel inklusive Umgebungs-Setup
+  </Card>
+
+  <Card title="Live-Demo" icon="globe" href="https://stagehand-nextjs-quickstart.vercel.app">
+    Sehen Sie die bereitgestellte Vorlage in Aktion
+  </Card>
+
+  <Card title="Quellcode" icon="github" href="https://github.com/browserbase/stagehand-nextjs-quickstart">
+    Repository auf GitHub ansehen
+  </Card>
+</CardGroup>
+
+<div id="what-you-get">
+  ## Was Sie erhalten
+</div>
+
+<CardGroup cols={2}>
+  <Card title="App-Router-Projekt" icon="browser">
+    Next.js-App-Router‑Gerüst mit Tailwind-Styling
+  </Card>
+
+  <Card title="Server‑sichere Automatisierung" icon="shield-check">
+    Verwendet Browserbase für Cloud-Browser (funktioniert in Vercel Functions)
+  </Card>
+
+  <Card title="Vorkonfigurierte Konfiguration" icon="gear">
+    `stagehand.config.ts` mit Modell‑ und Provider‑Umschaltung
+  </Card>
+
+  <Card title="Automatisierungsbereit" icon="robot">
+    Beispielhafte Nutzung der Stagehand‑Primitives
+  </Card>
+</CardGroup>
+
+<div id="requirements">
+  ## Anforderungen
+</div>
+
+- **Node 18+** lokal
+- **Modellschlüssel**: OpenAI oder Anthropic (oder einen benutzerdefinierten Client einbinden)
+- **Browserbase-Schlüssel**: `BROWSERBASE_API_KEY` und `BROWSERBASE_PROJECT_ID` für Cloud-Browser
+
+<Tip>
+  Lokale Playwright-Browser sind auf Vercel nicht verfügbar. Konfigurieren Sie Stagehand beim Deployment auf Browserbase.
+</Tip>
+
+<div id="links">
+  ## Links
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/de/integrations/vercel/quickstart">
+    Lokal ausführen und in wenigen Minuten auf Vercel deployen
+  </Card>
+
+  <Card title="TypeScript Quickstart" icon="code" href="/de/first-steps/quickstart">
+    Weitere Templates, einschließlich Beispielen für das Deployment auf Vercel
+  </Card>
+</CardGroup>

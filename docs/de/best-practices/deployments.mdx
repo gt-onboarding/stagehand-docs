@@ -1,0 +1,255 @@
+---
+title: "Bereitstellung von Stagehand"
+description: "Deployen Sie Ihre KI-Agents und Automatisierungen in der Cloud"
+---
+
+<Tip>
+  **🌟 Vorschau: Browser Functions** - Deployen Sie Ihren Web‑Automatisierungscode mit Browser Functions direkt auf Browserbase. Skalieren Sie Ihre `act()`‑Automatisierungen in der Cloud ohne Infrastruktur‑Setup. Kontaktieren Sie hello@browserbase.com, um Zugang zur Beta zu erhalten.
+</Tip>
+
+<div id="deploy-on-vercel">
+  ## Auf Vercel bereitstellen
+</div>
+
+Führen Sie Stagehand sicher auf Browserbase innerhalb einer Vercel Function aus. Diese Anleitung zeigt einen minimalen, produktionsreifen HTTP-Endpunkt, den Sie direkt oder nach Zeitplan aufrufen können.
+
+<div id="1-install-vercel-cli">
+  ### 1. Vercel CLI installieren
+</div>
+
+Um die Vercel CLI herunterzuladen und zu installieren, führen Sie einen der folgenden Befehle aus:
+
+<CodeGroup>
+  ```bash pnpm
+  pnpm i -g vercel
+  ```
+
+  ```bash yarn
+  yarn global add vercel
+  ```
+
+  ```bash npm
+  npm i -g vercel
+  ```
+
+  ```bash bun
+  bun add -g vercel
+  ```
+</CodeGroup>
+
+<div id="2-project-layout">
+  ### 2. Projektstruktur
+</div>
+
+```text
+your-project/
+  api/
+    run.ts
+  package.json
+  tsconfig.json
+  vercel.json
+```
+
+Erstellen Sie die Struktur mit:
+
+```bash
+mkdir -p api
+touch api/run.ts package.json vercel.json tsconfig.json
+```
+
+<div id="3-apirunts-nodejs-runtime">
+  ### 3. `api/run.ts` (Node.js-Runtime)
+</div>
+
+```typescript
+// api/run.ts
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { Stagehand } from "@browserbasehq/stagehand";
+import { z } from "zod";
+
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  try {
+    const stagehand = new Stagehand({
+      env: "BROWSERBASE",
+      apiKey: process.env.BROWSERBASE_API_KEY!,
+      projectId: process.env.BROWSERBASE_PROJECT_ID!,
+      modelName: "google/gemini-2.5-flash",
+      modelClientOptions: {
+        apiKey: process.env.GOOGLE_API_KEY!,
+      },
+      // optionale Sitzungsparameter
+      browserbaseSessionCreateParams: {
+        projectId: process.env.BROWSERBASE_PROJECT_ID!,
+        region: "us-west-2",
+        browserSettings: {
+          blockAds: true,
+        },
+      },
+    });
+
+    await stagehand.init();
+    const page = stagehand.page;
+
+    await page.goto("https://www.stagehand.dev/");
+    await page.act("click the evals button");
+
+    const { extraction } = await page.extract("extract the fastest model");
+    const data = { model: extraction ?? "" };
+
+    await stagehand.close();
+
+    res.status(200).json({ ok: true, data: data.model });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ ok: false, error: msg });
+  }
+}
+```
+
+<div id="4-packagejson">
+  ### 4. `package.json`
+</div>
+
+```json
+{
+    "name": "bb-stagehand-on-vercel",
+    "private": true,
+    "type": "module",
+    "engines": { "node": ">=18" },
+    "dependencies": {
+      "@browserbasehq/stagehand": "^2.4.3",
+      "zod": "^3.25.0"
+    },
+    "devDependencies": {
+      "typescript": "^5.6.0",
+      "@types/node": "^20.12.12",
+      "@vercel/node": "^3.2.20"
+    }
+}
+```
+
+<div id="5-tsconfigjson">
+  ### 5. `tsconfig.json`
+</div>
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "outDir": ".vercel/output/functions",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["api/**/*.ts"]
+}
+```
+
+<div id="6-verceljson">
+  ### 6. `vercel.json`
+</div>
+
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/run.ts": {
+      "maxDuration": 60
+    }
+  }
+}
+```
+
+Weitere Informationen finden Sie in der Vercel-Dokumentation zu [Configuring Functions](https://vercel.com/docs/functions/configuring-functions).
+
+<div id="7-link-your-project">
+  ### 7. Verknüpfen Sie Ihr Projekt
+</div>
+
+Verknüpfen Sie Ihren lokalen Ordner mit einem Vercel-Projekt, bevor Sie Umgebungsvariablen konfigurieren:
+
+```bash
+# bei Bedarf anmelden
+vercel login
+
+# das aktuelle Verzeichnis mit einem Vercel-Projekt verknüpfen (interaktiv)
+vercel link
+```
+
+<div id="8-environment-variables">
+  ### 8. Umgebungsvariablen
+</div>
+
+Lege `.env` nicht im Produktionszweig ab. Füge Variablen über die Vercel-CLI hinzu:
+
+```bash
+vercel env add BROWSERBASE_API_KEY
+vercel env add BROWSERBASE_PROJECT_ID
+# (und deinen Modellschlüssel, falls erforderlich)
+vercel env add GOOGLE_API_KEY
+```
+
+Siehe auch: [Browser Environment](/de/configuration/environment) für Details zu den erforderlichen Variablen.
+
+<div id="9-test-locally">
+  ### 9. Lokal testen
+</div>
+
+Repliziere die Vercel-Umgebung lokal, um deine Function vor dem Deployment zu testen. Führe die Befehle im Projektstammverzeichnis aus.
+
+```bash
+# sicherstellen, dass die Abhängigkeiten installiert sind
+npm install
+
+# lokalen Vercel-Dev-Server starten
+vercel dev --listen 5005
+```
+
+<div id="10-deploy">
+  ### 10. Deployment
+</div>
+
+```bash
+vercel
+vercel --prod
+```
+
+<div id="execute-the-function">
+  ### Die Funktion ausführen
+</div>
+
+```bash
+curl -X POST https://<your-deployment>/api/run
+```
+
+<div id="optional-cron-on-vercel">
+  ### Optional: Cron auf Vercel
+</div>
+
+Rufen Sie denselben Endpunkt nach einem Zeitplan auf, indem Sie `vercel.json` erweitern:
+
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/run.ts": {
+      "maxDuration": 60
+    }
+  }
+  },
+  "crons": [
+    { "path": "/api/run", "schedule": "0 * * * *" }
+  ]
+}
+```
+
+<div id="features">
+  ### Funktionen
+</div>
+
+- **Keine lokalen Browser nötig** mit `env: "BROWSERBASE"`. [Browserbase](https://www.browserbase.com/) stellt die Browser bereit.
+- **Hohe Geschwindigkeit**: Browserarbeit an Browserbase auslagern und JSON schnell zurückgeben.
+- **Langlaufende Aufgaben**: `maxDuration` erhöhen und/oder Edge-Runtime-Grenzen abhängig vom Plan berücksichtigen.

@@ -1,0 +1,116 @@
+---
+title: Schnellstart
+description: 'Mit Stagehand können Sie Web‑Automatisierungen mit natürlicher Sprache und Code erstellen.'
+---
+
+Wenn Sie **Stagehand zum ersten Mal verwenden**, probieren Sie zunächst [Director](https://director.ai) aus. Das ist ein Agent, mit dem Sie Stagehand‑Workflows in natürlicher Sprache erstellen können. Sie können Stagehand auch über unseren [MCP‑Server](/de/integrations/mcp/introduction) testen.
+
+Ansonsten ist der schnellste Einstieg in Stagehand unsere CLI. Sie richtet eine sofort lauffähige Stagehand‑App mit sinnvollen Standardeinstellungen und einem Beispielskript ein.
+
+<Note>
+  Dieser Schnellstart ist für **TypeScript**. Für **Python** siehe die [Installationsanleitung](/de/first-steps/installation).
+</Note>
+
+<div id="1-create-a-sample-project">
+  ## 1) Ein Beispielprojekt erstellen
+</div>
+
+<CodeGroup>
+  ```bash Bash
+  npx create-browser-app
+  ```
+</CodeGroup>
+
+<div id="2-run-it">
+  ## 2) Ausführen
+</div>
+
+Folgen Sie den CLI-Eingabeaufforderungen, um in das Projektverzeichnis zu wechseln und Ihre API-Schlüssel hinzuzufügen. Führen Sie anschließend das Beispielskript aus.
+
+<CodeGroup>
+  ```bash Bash
+  cd my-stagehand-app # In das Projektverzeichnis wechseln
+  cp .env.example .env  # API-Schlüssel hinzufügen
+  npm start # Beispielskript ausführen
+  ```
+</CodeGroup>
+
+<div id="3-use-stagehand-act-extract-observe">
+  ## 3) Stagehand verwenden (act, extract, observe)
+</div>
+
+Das Scaffold enthält eine Datei index.ts mit dem Beispielskript. So sieht es aus:
+
+<CodeGroup>
+  ```typescript TypeScript
+  import "dotenv/config";
+  import { Stagehand } from "@browserbasehq/stagehand";
+
+  async function main() {
+    const stagehand = new Stagehand({
+      env: "BROWSERBASE"
+    });
+
+    await stagehand.init();
+
+    console.log(`Stagehand Session Started`);
+    console.log(`Watch live: https://browserbase.com/sessions/${stagehand.browserbaseSessionID}`);
+
+    const page = stagehand.page;
+
+    await page.goto("https://stagehand.dev");
+
+    const extractResult = await page.extract("Extract the value proposition from the page.");
+    console.log(`Extract result:\n`, extractResult);
+
+    const actResult = await page.act("Click the 'Evals' button.");
+    console.log(`Act result:\n`, actResult);
+
+    const observeResult = await page.observe("What can I click on this page?");
+    console.log(`Observe result:\n`, observeResult);
+
+    const agent = await stagehand.agent({
+      instructions: "You're a helpful assistant that can control a web browser.",
+    });
+
+    const agentResult = await agent.execute("What is the most accurate model to use in Stagehand?");
+    console.log(`Agent result:\n`, agentResult);
+
+    await stagehand.close();
+  }
+
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+
+  ```
+</CodeGroup>
+
+<Tip>
+  Zum Verwenden die Provider-Schlüssel in `.env` setzen (z. B. `OPENAI_API_KEY`). Für Cloud-Browser zusätzlich `BROWSERBASE_API_KEY` und `BROWSERBASE_PROJECT_ID` hinzufügen.
+</Tip>
+
+<div id="next-steps">
+  ## Nächste Schritte
+</div>
+
+Erfahren Sie mehr über die Stagehand-Primitiven: act, extract, observe und agent.
+
+<CardGroup cols={2}>
+  <Card title="Act" icon="arrow-pointer" href="/de/basics/act">
+    Führen Sie Aktionen auf Webseiten in natürlicher Sprache aus
+  </Card>
+
+  <Card title="Extract" icon="download" href="/de/basics/extract">
+    Erhalten Sie strukturierte Daten mit Zod-Schemas
+  </Card>
+
+  <Card title="Observe" icon="eye" href="/de/basics/observe">
+    Identifizieren Sie verfügbare Elemente und Aktionen
+  </Card>
+
+  <Card title="Agent" icon="robot" href="/de/basics/agent">
+    Autonome, mehrstufige Browser-Workflows
+  </Card>
+</CardGroup>

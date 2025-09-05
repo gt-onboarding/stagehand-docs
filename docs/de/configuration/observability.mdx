@@ -1,0 +1,561 @@
+---
+title: Observability
+sidebarTitle: Observability
+description: Stagehand-Automatisierung mit Sitzungs­sichtbarkeit und Analysen nachverfolgen
+---
+
+Stagehand bietet leistungsstarke Observability‑Funktionen, mit denen du deine Browser‑Automatisierungs‑Workflows überwachen, die Leistung messen und analysieren kannst. Lege den Fokus auf Sitzungsüberwachung, Ressourcennutzung und operative Einblicke – sowohl in Browserbase als auch in lokalen Umgebungen.
+
+<div id="browserbase-session-monitoring">
+  ## Browserbase-Sitzungsüberwachung
+</div>
+
+Bei der Ausführung auf Browserbase erhalten Sie über die Browserbase-API und das Dashboard Zugriff auf umfassendes cloudbasiertes Monitoring und die Verwaltung von Sitzungen.
+
+<div style={{ textAlign: "center" }}>
+  <img src="/media/observability.gif" alt="Browserbase-Transparenz für Sitzungen" width="400" />
+</div>
+
+<div id="live-session-visibility">
+  ### Live-Sitzungsübersicht
+</div>
+
+Browserbase bietet Echtzeiteinblicke in Ihre Automatisierungssitzungen:
+
+**Funktionen des Sitzungs-Dashboards**
+
+- Echtzeit-Browserbildschirmaufzeichnung und -wiedergabe
+- Überwachung von Netzwerkrequests mit detaillierten Zeitangaben
+- JavaScript-Konsolenlogs und Fehlertracking
+- Metriken zur CPU- und Speicherauslastung
+- Tracking von Sitzungsstatus und -dauer
+
+**Sitzungsverwaltung & API-Zugriff**
+
+<CodeGroup>
+  ```typescript TypeScript
+  import { Stagehand } from "@browserbasehq/stagehand";
+  import { Browserbase } from "@browserbasehq/sdk";
+
+  const browserbase = new Browserbase({
+    apiKey: process.env.BROWSERBASE_API_KEY,
+  });
+
+  const stagehand = new Stagehand({
+    env: "BROWSERBASE"
+  });
+
+  await stagehand.init();
+
+  const sessionInfo = await browserbase.sessions.retrieve(stagehand.sessionId);
+
+  console.log("Session status:", sessionInfo.status);
+  console.log("Session region:", sessionInfo.region);
+  console.log("CPU usage:", sessionInfo.avgCpuUsage);
+  console.log("Memory usage:", sessionInfo.memoryUsage);
+  console.log("Proxy bytes:", sessionInfo.proxyBytes);
+  ```
+
+  ```python Python
+  import os
+  from stagehand import Stagehand
+  from browserbase import Browserbase
+
+  browserbase = Browserbase(
+    api_key=os.getenv("BROWSERBASE_API_KEY"),
+  )
+
+  stagehand = Stagehand(
+      env="BROWSERBASE",
+  )
+
+  await stagehand.init()
+
+  session_info = browserbase.sessions.retrieve(stagehand.session_id)
+
+  print(f"Session status: {session_info['status']}")
+  print(f"Session region: {session_info['region']}")
+  print(f"CPU usage: {session_info['avgCpuUsage']}")
+  print(f"Memory usage: {session_info['memoryUsage']}")
+  print(f"Proxy bytes: {session_info['proxyBytes']}")
+  ```
+</CodeGroup>
+
+<div id="session-analytics-insights">
+  ### Sitzungsanalysen & Einblicke
+</div>
+
+<CardGroup>
+  <Card title="Echtzeitüberwachung" icon="chart-line">
+    Überwachen Sie Live-Sitzungsstatus, Ressourcennutzung und geografische Verteilung. Skalieren und steuern Sie parallele Sitzungen mit Echtzeit-Einblicken.
+  </Card>
+
+  <Card title="Sitzungsaufzeichnungen" icon="video">
+    Überprüfen Sie vollständige Sitzungsaufzeichnungen mit Bild-für-Bild-Wiedergabe. Analysieren Sie Netzwerkrequests und debuggen Sie Browserinteraktionen visuell.
+  </Card>
+
+  <Card title="API-Management" icon="code">
+    Greifen Sie programmatisch auf Sitzungsdaten zu, automatisieren Sie das Lifecycle-Management und integrieren Sie Monitoring-Systeme über unsere API.
+  </Card>
+
+  <Card title="Nutzungsmonitoring" icon="chart-bar">
+    Verfolgen Sie Ressourcenverbrauch, Sitzungsdauer und API-Nutzung. Erhalten Sie detaillierte Aufschlüsselungen von Kosten und Auslastung in Ihren Automationen.
+  </Card>
+</CardGroup>
+
+<div id="session-monitoring-filtering">
+  ### Überwachung und Filterung von Sitzungen
+</div>
+
+Sitzungen anhand von Status und Metadaten abfragen und überwachen:
+
+<CodeGroup>
+  ```typescript TypeScript
+  import { Browserbase } from "@browserbasehq/sdk";
+
+  const browserbase = new Browserbase({
+    apiKey: process.env.BROWSERBASE_API_KEY,
+  });
+
+  // Sitzungen mit Filtern auflisten
+  async function getFilteredSessions() {
+    const sessions = await browserbase.sessions.list({
+      status: 'RUNNING'
+    });
+    
+    return sessions.map(session => ({
+      id: session.id,
+      status: session.status, // RUNNING, COMPLETED, ERROR, TIMED_OUT
+      startedAt: session.startedAt,
+      endedAt: session.endedAt,
+      region: session.region,
+      avgCpuUsage: session.avgCpuUsage,
+      memoryUsage: session.memoryUsage,
+      proxyBytes: session.proxyBytes,
+      userMetadata: session.userMetadata
+    }));
+  }
+
+  // Sitzungen nach Metadaten abfragen
+  async function querySessionsByMetadata(query: string) {
+    const sessions = await browserbase.sessions.list({
+      q: query
+    });
+    
+    return sessions;
+  }
+  ```
+
+  ```python Python
+  import os
+  from browserbase import Browserbase
+
+  browserbase = Browserbase(
+      api_key=os.getenv("BROWSERBASE_API_KEY"),
+  )
+
+  def get_filtered_sessions():
+      sessions = browserbase.sessions.list(status="RUNNING")
+      
+      return [{
+          'id': session['id'],
+          'status': session['status'],  # RUNNING, COMPLETED, ERROR, TIMED_OUT
+          'started_at': session['startedAt'],
+          'ended_at': session['endedAt'],
+          'region': session['region'],
+          'avg_cpu_usage': session['avgCpuUsage'],
+          'memory_usage': session['memoryUsage'],
+          'proxy_bytes': session['proxyBytes'],
+          'user_metadata': session['userMetadata']
+      } for session in sessions]
+
+  def query_sessions_by_metadata(query):
+      sessions = browserbase.sessions.list(q=query)
+      
+      return sessions
+  ```
+</CodeGroup>
+
+<div id="local-environment-monitoring">
+  ## Überwachung der lokalen Umgebung
+</div>
+
+Für die lokale Entwicklung bietet Stagehand Leistungsmonitoring und Ressourcenverfolgung direkt auf deinem Rechner.
+
+<div id="performance-tracking">
+  ### Performance-Tracking
+</div>
+
+<CodeGroup>
+  ```typescript TypeScript
+  import { Stagehand } from "@browserbasehq/stagehand";
+
+  const stagehand = new Stagehand({
+    env: "LOCAL",
+    verbose: 1, // Performance überwachen ohne Debug-Rauschen
+  });
+
+  // Lokale Automatisierungsmetriken erfassen
+  const startTime = Date.now();
+  const initialMetrics = stagehand.metrics;
+
+  // ... Automatisierungsaufgaben ausführen
+
+  const finalMetrics = stagehand.metrics;
+  const executionTime = Date.now() - startTime;
+
+  console.log('Lokale Performance-Zusammenfassung:', {
+    executionTime: `${executionTime}ms`,
+    totalTokens: finalMetrics.totalPromptTokens + finalMetrics.totalCompletionTokens,
+    averageResponseTime: finalMetrics.totalInferenceTimeMs / 3, // Annahme: 3 Vorgänge
+    tokensPerSecond: (finalMetrics.totalPromptTokens + finalMetrics.totalCompletionTokens) / (executionTime / 1000)
+  });
+  ```
+
+  ```python Python
+  from stagehand import Stagehand
+  import time
+
+  stagehand = Stagehand(
+      env="LOCAL",
+      verbose=1,  # Performance überwachen ohne Debug-Rauschen
+  )
+
+  # Lokale Automatisierungsmetriken erfassen
+  start_time = time.time()
+  initial_metrics = stagehand.metrics
+
+  # ... Automatisierungsaufgaben ausführen
+
+  final_metrics = stagehand.metrics
+  execution_time = (time.time() - start_time) * 1000  # Umrechnung in ms
+
+  print('Lokale Performance-Zusammenfassung:', {
+      'execution_time': f"{execution_time:.0f}ms",
+      'total_tokens': final_metrics['total_prompt_tokens'] + final_metrics['total_completion_tokens'],
+      'average_response_time': final_metrics['total_inference_time_ms'] / 3,  # Annahme: 3 Vorgänge
+      'tokens_per_second': (final_metrics['total_prompt_tokens'] + final_metrics['total_completion_tokens']) / (execution_time / 1000)
+  })
+  ```
+</CodeGroup>
+
+<div id="resource-usage-monitoring">
+  ## Überwachung der Ressourcennutzung
+</div>
+
+Bei lokaler Ausführung die Nutzung von Systemressourcen und die Browserleistung überwachen:
+
+<CodeGroup>
+  ```typescript TypeScript
+  import { Stagehand } from "@browserbasehq/stagehand";
+  import * as os from 'os';
+  import { performance } from 'perf_hooks';
+
+  class LocalResourceMonitor {
+    private cpuUsage: number[] = [];
+    private memoryUsage: number[] = [];
+    
+    startMonitoring() {
+      const interval = setInterval(() => {
+        // Systemressourcen erfassen
+        const memUsage = process.memoryUsage();
+        this.memoryUsage.push(memUsage.heapUsed / 1024 / 1024); // MB
+        
+        // CPU erfassen (vereinfacht)
+        const loadAvg = os.loadavg()[0];
+        this.cpuUsage.push(loadAvg);
+      }, 1000);
+      
+      return interval;
+    }
+    
+    getResourceSummary() {
+      return {
+        avgMemoryUsage: this.memoryUsage.reduce((a, b) => a + b, 0) / this.memoryUsage.length,
+        peakMemoryUsage: Math.max(...this.memoryUsage),
+        avgCpuLoad: this.cpuUsage.reduce((a, b) => a + b, 0) / this.cpuUsage.length,
+        totalDataPoints: this.cpuUsage.length
+      };
+    }
+  }
+
+  const monitor = new LocalResourceMonitor();
+  const interval = monitor.startMonitoring();
+
+  const stagehand = new Stagehand({ env: "LOCAL" });
+
+  // ... Automatisierung ausführen
+
+  clearInterval(interval);
+  console.log('Ressourcennutzung:', monitor.getResourceSummary());
+  ```
+
+  ```python Python
+  import psutil
+  import time
+  from typing import List
+  from stagehand import Stagehand
+
+  class LocalResourceMonitor:
+      def __init__(self):
+          self.cpu_usage: List[float] = []
+          self.memory_usage: List[float] = []
+          self.monitoring = False
+      
+      def start_monitoring(self):
+          self.monitoring = True
+          import threading
+          
+          def monitor_resources():
+              while self.monitoring:
+                  # CPU- und Speicherauslastung erfassen
+                  cpu_percent = psutil.cpu_percent(interval=1)
+                  memory_info = psutil.virtual_memory()
+                  
+                  self.cpu_usage.append(cpu_percent)
+                  self.memory_usage.append(memory_info.percent)
+                  
+                  time.sleep(1)
+          
+          thread = threading.Thread(target=monitor_resources)
+          thread.daemon = True
+          thread.start()
+          return thread
+      
+      def stop_monitoring(self):
+          self.monitoring = False
+      
+      def get_resource_summary(self):
+          if not self.cpu_usage or not self.memory_usage:
+              return {'error': 'Keine Monitoring-Daten erfasst'}
+          
+          return {
+              'avg_cpu_usage': sum(self.cpu_usage) / len(self.cpu_usage),
+              'peak_cpu_usage': max(self.cpu_usage),
+              'avg_memory_usage': sum(self.memory_usage) / len(self.memory_usage),
+              'peak_memory_usage': max(self.memory_usage),
+              'total_data_points': len(self.cpu_usage)
+          }
+
+  monitor = LocalResourceMonitor()
+  monitor.start_monitoring()
+
+  stagehand = Stagehand(env="LOCAL")
+
+  # ... Automatisierung ausführen
+
+  monitor.stop_monitoring()
+  print('Ressourcennutzung:', monitor.get_resource_summary())
+  ```
+</CodeGroup>
+
+<Card title="LLM-Nutzung" icon="chart-line" href="/de/configuration/evals">
+  Tokenverbrauch, Kosten und Geschwindigkeit überwachen. Automatisierte Benachrichtigungen für kritische Fehler einrichten. Kostenverfolgung über verschiedene Umgebungen hinweg implementieren. Sitzungsanalysen nutzen, um Automatisierungs-Workflows zu optimieren.
+</Card>
+
+<div id="real-time-metrics-monitoring">
+  ## Metriken und Monitoring in Echtzeit
+</div>
+
+<div id="basic-usage-tracking">
+  ### Grundlegendes Nutzungs-Tracking
+</div>
+
+Überwachen Sie die Ressourcennutzung Ihrer Automatisierung in Echtzeit mit `stagehand.metrics`:
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Aktuelle Metriken abrufen
+  console.log(stagehand.metrics);
+
+  // Während der Automatisierung überwachen
+  const startTime = Date.now();
+  const initialMetrics = stagehand.metrics;
+
+  // ... Automatisierungsaufgaben ausführen
+
+  const finalMetrics = stagehand.metrics;
+  const executionTime = Date.now() - startTime;
+
+  console.log('Zusammenfassung der Automatisierung:', {
+    totalTokens: finalMetrics.totalPromptTokens + finalMetrics.totalCompletionTokens,
+    totalCost: calculateCost(finalMetrics),
+    executionTime,
+    efficiency: (finalMetrics.totalPromptTokens + finalMetrics.totalCompletionTokens) / executionTime
+  });
+  ```
+
+  ```python Python
+  # Aktuelle Metriken abrufen
+  print(stagehand.metrics)
+
+  # Während der Automatisierung überwachen
+  import time
+  start_time = time.time()
+  initial_metrics = stagehand.metrics
+
+  # ... Automatisierungsaufgaben ausführen
+
+  final_metrics = stagehand.metrics
+  execution_time = (time.time() - start_time) * 1000  # In ms umrechnen
+
+  print('Zusammenfassung der Automatisierung:', {
+      'total_tokens': final_metrics['total_prompt_tokens'] + final_metrics['total_completion_tokens'],
+      'total_cost': calculate_cost(final_metrics),
+      'execution_time': execution_time,
+      'efficiency': (final_metrics['total_prompt_tokens'] + final_metrics['total_completion_tokens']) / execution_time
+  })
+  ```
+</CodeGroup>
+
+<div id="understanding-metrics-data">
+  ### Verständnis der Metriken
+</div>
+
+Das Metrics-Objekt liefert eine detaillierte Aufschlüsselung nach Stagehand-Operation:
+
+<CodeGroup>
+  ```typescript TypeScript
+  {
+    actPromptTokens: 4011,
+    actCompletionTokens: 51,
+    actInferenceTimeMs: 1688,
+
+    extractPromptTokens: 4200,
+    extractCompletionTokens: 243,
+    extractInferenceTimeMs: 4297,
+
+    observePromptTokens: 347,
+    observeCompletionTokens: 43,
+    observeInferenceTimeMs: 903,
+
+    totalPromptTokens: 8558,
+    totalCompletionTokens: 337,
+    totalInferenceTimeMs: 6888
+  }
+  ```
+
+  ```python Python
+  {
+    "act_prompt_tokens": 4011,
+    "act_completion_tokens": 51,
+    "act_inference_time_ms": 1688,
+
+    "extract_prompt_tokens": 4200,
+    "extract_completion_tokens": 243,
+    "extract_inference_time_ms": 4297,
+
+    "observe_prompt_tokens": 347,
+    "observe_completion_tokens": 43,
+    "observe_inference_time_ms": 903,
+
+    "total_prompt_tokens": 8558,
+    "total_completion_tokens": 337,
+    "total_inference_time_ms": 6888
+  }
+  ```
+</CodeGroup>
+
+<div id="log-inference-to-file">
+  ### Inferenz in Datei protokollieren
+</div>
+
+Sie können die Inferenz auch in eine Datei protokollieren, indem Sie `logInferenceToFile` auf `true` setzen. Dadurch wird im Stammverzeichnis Ihres Projekts ein Verzeichnis namens `inference_summary` erstellt.
+
+<CodeGroup>
+  ```typescript TypeScript
+  const stagehand = new Stagehand({
+    logInferenceToFile: true,    
+  });
+  ```
+
+  ```python Python
+  stagehand = Stagehand(
+      log_inference_to_file=True,             
+  )
+  ```
+</CodeGroup>
+
+Das Verzeichnis `inference_summary` enthält detaillierte Analysedaten:
+
+```
+inference_summary/
+├── act_summary/
+│   ├── {timestamp}.json
+│   ├── {timestamp}.json
+│   └── ...
+│   └── act_summary.json
+├── extract_summary/
+│   ├── {timestamp}.json
+│   ├── {timestamp}.json
+│   └── ...
+│   └── extract_summary.json
+├── observe_summary/
+│   ├── {timestamp}.json
+│   ├── {timestamp}.json
+│   └── ...
+│   └── observe_summary.json
+```
+
+<div id="log-file-structure">
+  ### Struktur der Protokolldatei
+</div>
+
+Jede Operation erzeugt detaillierte Protokolle für die Analyse:
+
+```typescript
+{
+  "act_summary": [
+    {
+      "act_inference_type": "act",
+      "timestamp": "20250329_080446068",
+      "LLM_input_file": "20250329_080446068_act_call.txt",
+      "LLM_output_file": "20250329_080447019_act_response.txt",
+      "prompt_tokens": 3451,
+      "completion_tokens": 45,
+      "inference_time_ms": 951
+    },
+    ...
+  ],
+}
+```
+
+<div id="best-practices">
+  ## Best Practices
+</div>
+
+<AccordionGroup>
+  <Accordion title="Produktions-Monitoring">
+    - Verfolgen Sie Erfolgsquoten und Fehlermuster von Sitzungen
+    - Überwachen Sie Ressourcennutzung und Skalierungsbedarf
+    - Richten Sie automatische Warnmeldungen für kritische Ausfälle ein
+    - Implementieren Sie Kosten-Tracking über verschiedene Umgebungen
+    - Nutzen Sie Sitzungsanalysen zur Optimierung von Automatisierungs-Workflows
+  </Accordion>
+
+  <Accordion title="Performance-Optimierung">
+    - Vergleichen Sie Ausführungszeiten auf Browserbase vs. lokal
+    - Überwachen Sie Tokenverbrauch und Inferenzkosten über Modelle hinweg
+    - Verfolgen Sie geografische Performance-Unterschiede
+    - Identifizieren Sie Engpässe in Automatisierungs-Workflows
+    - Optimieren Sie für Kosteneffizienz und Geschwindigkeit
+  </Accordion>
+
+  <Accordion title="Operative Einblicke">
+    - Verfolgen Sie die Verteilung der Sitzungen über Regionen
+    - Überwachen Sie Limits für gleichzeitige Sitzungen und Skalierung
+    - Analysieren Sie Fehlermuster und häufige Fehlerfälle
+    - Nutzen Sie Sitzungsaufzeichnungen für Root-Cause-Analysen
+    - Implementieren Sie benutzerdefinierte Metadaten zur Workflow-Kategorisierung
+  </Accordion>
+
+  <Accordion title="Integration & Benachrichtigungen">
+    - Integrieren Sie Sitzungs-APIs in Monitoring-Dashboards
+    - Richten Sie automatische Benachrichtigungen bei Sitzungsfehlern ein
+    - Verfolgen Sie SLA-Compliance und Performance-Benchmarks
+    - Überwachen Sie Ressourcenkosten und Nutzungsmuster
+    - Nutzen Sie Analysedaten für Kapazitätsplanung und Optimierung
+  </Accordion>
+</AccordionGroup>
+
+Ausführliche Informationen zu Logging und Debugging finden Sie unter [Logging](/de/configuration/logging).

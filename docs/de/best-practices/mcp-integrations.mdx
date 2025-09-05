@@ -1,0 +1,310 @@
+---
+title: "MCP-Integrationen"
+description: "Einsatz von Integrationen des Model Context Protocol (MCP), um die Fähigkeiten von Agents zu erweitern"
+---
+
+<div id="what-are-mcp-integrations">
+  ## Was sind MCP-Integrationen?
+</div>
+
+MCP- (Model Context Protocol) Integrationen ermöglichen es Ihnen, Ihre Stagehand-Agenten mit externen Tools, APIs und Diensten zu verbinden. Dadurch können Agenten Aktionen jenseits der Browserautomatisierung ausführen, etwa Websuche, Datenbankoperationen und API-Aufrufe.
+
+<Info>
+  MCP-Integrationen machen Ihre Agenten leistungsfähiger, indem sie Browserautomatisierung mit externen Funktionen kombinieren. Der Agent kann intelligent entscheiden, wann Browseraktionen gegenüber externen Tools eingesetzt werden sollten.
+</Info>
+
+<div id="connection-options">
+  ## Verbindungsoptionen
+</div>
+
+Es gibt zwei Möglichkeiten, eine Verbindung zu MCP-Servern herzustellen:
+
+1. **Eine URL direkt übergeben** – die einfachste Methode für eine schnelle Einrichtung
+2. **Zuerst eine Verbindung erstellen** – bietet mehr Kontrolle über die Verbindung
+
+<Note>
+  Unterstützung für MCP-Clients ist derzeit nur in TypeScript verfügbar.
+</Note>
+
+<div id="passing-a-url">
+  ## Eine URL übergeben
+</div>
+
+Die einfachste Möglichkeit, MCP-Integrationen hinzuzufügen, besteht darin, Server-URLs direkt in der Agent-Konfiguration anzugeben:
+
+```typescript
+const agent = stagehand.agent({
+  provider: "openai",
+  model: "computer-use-preview",
+  integrations: [
+    `https://mcp.exa.ai/mcp?exaApiKey=${process.env.EXA_API_KEY}`,
+  ],
+  instructions: `You have access to web search through Exa. Use it to find current information before browsing.`,
+  options: {
+    apiKey: process.env.OPENAI_API_KEY,
+  },
+});
+
+await agent.execute("Search for the best headphones of 2025 and go through checkout for the top recommendation");
+```
+
+<div id="creating-a-connection-first">
+  ## Zuerst eine Verbindung herstellen
+</div>
+
+Alternativ können Sie zuerst MCP-Verbindungen aufbauen und anschließend die Client-Objekte übergeben:
+
+```typescript
+import { connectToMCPServer } from "@browserbasehq/stagehand";
+
+// Verbindung zum MCP-Server herstellen
+const supabaseClient = await connectToMCPServer(
+  `https://server.smithery.ai/@supabase-community/supabase-mcp/mcp?api_key=${process.env.SMITHERY_API_KEY}`
+);
+
+// Sie können auch eine Konfiguration übergeben, um einen lokalen MCP-Server zu starten
+const notionClient = await connectToMCPServer({
+  command: "npx",
+  args: ["-y", "@notionhq/notion-mcp-server"],
+  env: {
+    NOTION_TOKEN: process.env.NOTION_TOKEN,
+  },
+});
+
+// Den verbundenen Client verwenden
+const agent = stagehand.agent({
+  provider: "openai", 
+  model: "computer-use-preview",
+  integrations: [supabaseClient, notionClient],
+  instructions: `You can interact with Supabase databases and Notion. Use these tools to store and retrieve data.`,
+  options: {
+    apiKey: process.env.OPENAI_API_KEY,
+  },
+});
+
+await agent.execute("Search for restaurants in New Brunswick, NJ and save the first result to the database");
+```
+
+<div id="multiple-integrations">
+  ## Mehrere Integrationen
+</div>
+
+Sie können mehrere MCP-Integrationen in einem einzelnen Agenten kombinieren:
+
+```typescript
+const databaseClient = await connectToMCPServer(/* Datenbankkonfiguration */);
+
+const agent = stagehand.agent({
+  integrations: [
+    `https://search-service.example.com/mcp?apiKey=${process.env.SEARCH_API_KEY}`,
+    databaseClient
+  ],
+  instructions: `Sie haben Zugriff auf externe Tools für Suche und Datenspeicherung. Setzen Sie diese Tools strategisch ein, um Aufgaben effizient zu erledigen.`
+});
+```
+
+<div id="best-practices">
+  ## Best Practices
+</div>
+
+<div id="choose-the-right-connection-approach">
+  ### Den richtigen Verbindungsansatz wählen
+</div>
+
+<Tabs>
+  <Tab title="URL übergeben">
+    **Wann verwenden:**
+
+    - Einfache Setup-Anforderungen
+    - Standard-API-Konfigurationen
+    - Schnellstart
+
+    **Vorteile:**
+
+    - Minimaler Codeaufwand
+    - Automatische Verbindungsverwaltung
+    - Einfache Konfiguration
+  </Tab>
+
+  <Tab title="Verbindung zuerst erstellen">
+    **Wann verwenden:**
+
+    - Benutzerdefinierte Verbindungsoptionen
+    - Wiederverwendung von Verbindungen über Agents hinweg
+    - Erweiterte Fehlerbehandlung
+
+    **Vorteile:**
+
+    - Volle Kontrolle über Verbindungen
+    - Verbesserte Fehlerbehandlung
+    - Verbindungspooling
+  </Tab>
+</Tabs>
+
+<div id="environment-variables">
+  ### Umgebungsvariablen
+</div>
+
+Verwenden Sie stets Umgebungsvariablen für API-Schlüssel und vertrauliche Informationen:
+
+```bash
+# .env file
+SEARCH_API_KEY=your_search_service_key
+MCP_SERVICE_API_KEY=your_mcp_service_key
+OPENAI_API_KEY=your_openai_key
+DATABASE_URL=your_database_url
+DATABASE_API_KEY=your_database_key
+```
+
+<div id="instructions-best-practices">
+  ### Best Practices für Anweisungen
+</div>
+
+Geben Sie klare Anweisungen zu den verfügbaren Tools:
+
+<Tabs>
+  <Tab title="Gute Anweisungen">
+    ```typescript
+    instructions: `Sie haben Zugriff auf:
+    1. Websuche-Tools – zum Finden aktueller Informationen
+    2. Datenbank-Tools – zum Speichern/Abrufen von Daten
+    3. Browser-Automatisierung – für Web-Interaktionen
+
+    Suchen Sie vor Entscheidungen immer nach aktuellen Informationen.
+    Speichern Sie wichtige Daten für die spätere Verwendung.`
+    ```
+  </Tab>
+
+  <Tab title="Schlechte Anweisungen">
+    ```typescript
+    instructions: "Sie können suchen und Daten speichern."
+    ```
+  </Tab>
+</Tabs>
+
+<div id="error-handling">
+  ### Fehlerbehandlung
+</div>
+
+Implementieren Sie eine robuste Fehlerbehandlung für MCP-Verbindungen:
+
+```typescript
+try {
+  const client = await connectToMCPServer(serverUrl);
+  
+  const agent = stagehand.agent({
+    integrations: [client],
+    // ... weitere Konfiguration
+  });
+  
+  const result = await agent.execute(instruction);
+} catch (error) {
+  console.error("MCP-Integration fehlgeschlagen:", error);
+  // Fallback-Verhalten behandeln
+}
+```
+
+<div id="troubleshooting">
+  ## Fehlerbehebung
+</div>
+
+<AccordionGroup>
+  <Accordion title="Verbindungs-Timeouts">
+    **Problem:** MCP-Serververbindungen laufen in ein Timeout
+
+    **Lösungen:**
+
+    - Überprüfen, ob die Server-URLs korrekt und erreichbar sind
+    - Netzwerkverbindung prüfen
+    - Sicherstellen, dass API-Schlüssel gültig sind und die richtigen Berechtigungen haben
+    - Versuchen, Server einzeln zu verbinden, um Probleme einzugrenzen
+  </Accordion>
+
+  <Accordion title="Tool wird nicht verwendet">
+    **Problem:** Agent verwendet verfügbare MCP-Tools nicht
+
+    **Lösungen:**
+
+    - Anweisungen präziser formulieren, wann Tools zu verwenden sind
+    - Sicherstellen, dass API-Schlüssel korrekt konfiguriert sind
+    - Prüfen, ob der MCP-Server die erwarteten Tools unterstützt
+    - Sicherstellen, dass Tool-Beschreibungen klar und umsetzbar sind
+  </Accordion>
+
+  <Accordion title="Authentifizierungsfehler">
+    **Problem:** API-Schlüssel- oder Authentifizierungsfehler
+
+    **Lösungen:**
+
+    - Überprüfen, ob alle erforderlichen Umgebungsvariablen gesetzt sind
+    - Gültigkeit und Berechtigungen des API-Schlüssels prüfen
+    - Sicherstellen, dass URLs die erforderlichen Authentifizierungsparameter enthalten
+    - MCP-Verbindungen vor der Verwendung in Agents separat testen
+  </Accordion>
+</AccordionGroup>
+
+<div id="examples">
+  ## Beispiele
+</div>
+
+<div id="web-search-browser-automation">
+  ### Websuche + Browserautomatisierung
+</div>
+
+```typescript
+const agent = stagehand.agent({
+  integrations: [`https://mcp.exa.ai/mcp?exaApiKey=${process.env.EXA_API_KEY}`],
+  instructions: `Recherchiere zunächst aktuelle Informationen und nutze anschließend den Browser, um Aufgaben basierend auf den Ergebnissen zu erledigen.`
+});
+
+await agent.execute("Finde die besten Laptop-Angebote für 2025 und navigiere anschließend zum Kauf der Top-Empfehlung");
+```
+
+<div id="data-extraction-storage">
+  ### Datenextraktion + Speicherung
+</div>
+
+```typescript
+const supabaseClient = await connectToMCPServer(/* Konfiguration */);
+
+const agent = stagehand.agent({
+  integrations: [supabaseClient],
+  instructions: `Extrahiere Daten von Websites und speichere sie mit den verfügbaren Datenbanktools.`
+});
+
+await agent.execute("Extrahiere alle Restaurantinformationen aus diesem Verzeichnis und speichere sie in der Datenbank");
+```
+
+<div id="multi-tool-workflow">
+  ### Multitool-Workflow
+</div>
+
+```typescript
+const agent = stagehand.agent({
+  integrations: [
+    `https://mcp.exa.ai/mcp?exaApiKey=${process.env.EXA_API_KEY}`,
+    supabaseClient
+  ],
+  instructions: `Nutze alle verfügbaren Tools strategisch: Suche nach aktuellen Informationen, durchstöbere Websites und speichere wichtige Daten.`
+});
+
+await agent.execute("Recherchiere die Preise der Konkurrenz, vergleiche sie mit unserer Website und speichere die Analyse");
+```
+
+<div id="further-reading">
+  ## Weiterführende Lektüre
+</div>
+
+<CardGroup cols={3}>
+  <Card title="Agent-Grundlagen" icon="robot" href="/de/basics/agent">
+    Lernen Sie die Grundlagen von Stagehand-Agents kennen
+  </Card>
+
+  <Card title="MCP-Server einrichten" icon="server" href="/de/integrations/mcp/setup">
+    Richten Sie Ihren eigenen MCP-Server ein
+  </Card>
+
+  <Card title="Eigene Tools" icon="wrench" href="/de/integrations/mcp/tools">
+    Erstellen Sie eigene MCP-Tools
+  </Card>
+</CardGroup>

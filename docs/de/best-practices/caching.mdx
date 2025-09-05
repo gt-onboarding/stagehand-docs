@@ -1,0 +1,216 @@
+---
+title: Caching von Aktionen
+description: Sie können Aktionen in Stagehand cachen, um redundante LLM-Aufrufe zu vermeiden.
+---
+
+Das Caching von Aktionen in Stagehand ist hilfreich für Aktionen mit hohen Ausführungskosten oder wenn sich die zugrunde liegende DOM-Struktur voraussichtlich nicht ändert.
+
+<div id="using-observe-to-preview-an-action">
+  ## `observe` verwenden, um eine Aktion vorab zu prüfen
+</div>
+
+`observe` ermöglicht es, eine Aktion vor ihrer Ausführung zu prüfen. Wenn Sie mit der Aktionsvorschau zufrieden sind, können Sie sie in `page.act` ohne weitere LLM-Aufrufe ausführen.
+
+<CodeGroup>
+```typescript TypeScript
+const [actionPreview] = await page.observe("Click the quickstart link");
+
+/** actionPreview is a JSON-ified version of a Playwright action:
+{
+	description: "The quickstart link",
+	method: "click",
+	selector: "/html/body/div[1]/div[1]/a",
+	arguments: [],
+}
+**/
+
+// KEINE LLM-INFERENZ beim Aufruf von act mit der Vorschau
+await page.act(actionPreview)
+```
+
+```python Python
+actions = await page.observe("Click the quickstart link")
+action_preview = actions[0]
+
+# action_preview is a dictionary version of a Playwright action:
+# {
+#	"description": "The quickstart link",
+#	"method": "click",
+#	"selector": "/html/body/div[1]/div[1]/a",
+#	"arguments": [],
+# }
+
+# KEINE LLM-INFERENZ beim Aufruf von act mit der Vorschau
+await page.act(action_preview)
+```
+</CodeGroup>
+
+<div id="simple-caching">
+  ## Einfaches Caching
+</div>
+
+Für dieses Beispiel verwenden wir ein simples dateibasiertes Caching. Wir schreiben Getter- und Setter-Funktionen, die aus einer JSON-Datei lesen und in diese schreiben:
+
+<CodeGroup>
+```typescript TypeScript
+// Zwischengespeicherten Wert abrufen (undefined, falls nicht vorhanden)
+async function getCache(key: string): Promise<ObserveResult | undefined> {
+  try {
+    const cache = await readFile("cache.json");
+    const parsed = JSON.parse(cache);
+    return parsed[key];
+  } catch {
+    return undefined;
+  }
+}
+
+// Cache-Wert setzen
+async function setCache(key: string, value: ObserveResult): Promise<void> {
+  const cache = await readFile("cache.json");
+  const parsed = JSON.parse(cache);
+  parsed[key] = value;
+  await writeFile("cache.json", JSON.stringify(parsed));
+}
+```
+
+```python Python
+# Zwischengespeicherten Wert abrufen (None, falls nicht vorhanden)
+async def get_cache(key: str) -> Optional[Dict[str, Any]]:
+    try:
+        async with aiofiles.open("cache.json", 'r') as f:
+            cache_content = await f.read()
+            parsed = json.loads(cache_content)
+            return parsed.get(key)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+# Cache-Wert setzen
+async def set_cache(key: str, value: Dict[str, Any]) -> None:
+    try:
+        async with aiofiles.open("cache.json", 'r') as f:
+            cache_content = await f.read()
+            parsed = json.loads(cache_content)
+    except (FileNotFoundError, json.JSONDecodeError):
+        parsed = {}
+    
+    parsed[key] = value
+    
+    async with aiofiles.open("cache.json", 'w') as f:
+        await f.write(json.dumps(parsed))
+```
+</CodeGroup>
+
+<div id="act-with-cache">
+  ### Mit Cache ausführen
+</div>
+
+Schreiben wir eine Funktion, die den Cache prüft, die Aktion abruft und ausführt. Falls die Aktion fehlschlägt, versuchen wir eine „Selbstheilung“, d. h. wir führen einen erneuten Versuch direkt mit `page.act` aus.
+
+<CodeGroup>
+```typescript TypeScript
+// Check the cache, get the action, and run it
+// If selfHeal is true, we'll attempt to self-heal if the action fails
+async function actWithCache(page: Page, key: string, prompt: string, selfHeal = false) {
+	try {
+		const cacheExists = await getCache(key);
+
+		let action: ObserveResult;
+		if (cacheExists) {
+		// Get the cached action
+		action = await getCache(prompt);
+		} else {
+		// Get the observe result (the action)
+		[action] = await page.observe(prompt);
+
+		// Cache the action
+		await setCache(prompt, action);
+		}
+
+		// Run the action (no LLM inference)
+		await page.act(action);
+	} catch (e) {
+		console.error(e);
+		// in selfHeal mode, we'll retry the action
+		if (selfHeal) {
+			console.log("Attempting to self-heal...");
+			await page.act(prompt);
+		}
+		else {
+			throw e;
+		}
+	}
+}
+```
+
+```python Python
+# Check the cache, get the action, and run it
+# If self_heal is true, we'll attempt to self-heal if the action fails
+async def act_with_cache(page, key: str, prompt: str, self_heal: bool = False):
+    try:
+        cache_exists = await get_cache(key)
+
+        if cache_exists:
+            # Get the cached action
+            action = await get_cache(prompt)
+        else:
+            # Get the observe result (the action)
+            actions = await page.observe(prompt)
+            action = actions[0]
+
+            # Cache the action
+            await set_cache(prompt, action)
+
+        # Run the action (no LLM inference)
+        await page.act(action)
+    except Exception as e:
+        print(f"Error: {e}")
+        # in self_heal mode, we'll retry the action
+        if self_heal:
+            print("Attempting to self-heal...")
+            await page.act(prompt)
+        else:
+            raise e
+```
+</CodeGroup>
+
+Du kannst nun `actWithCache` verwenden, um eine Aktion mit Caching auszuführen:
+
+<CodeGroup>
+```typescript TypeScript
+const prompt = "Click the quickstart link";
+const key = prompt; // Simple cache key
+// Attempt cached action or self-heal
+await actWithCache(page, key, prompt);
+```
+
+```python Python
+prompt = "Click the quickstart link"
+key = prompt  # Simple cache key
+# Attempt cached action or self-heal
+await act_with_cache(page, key, prompt)
+```
+</CodeGroup>
+
+<div id="advanced-caching">
+  ## Fortschrittliches Caching
+</div>
+
+Das obige Beispiel ist einfach, aber möglicherweise möchten Sie Aktionen basierend auf dem Seiteninhalt cachen. Außerdem sollten Sie bei doppelten Prompts einen eindeutigeren Schlüssel verwenden.
+
+Wir möchten die Caching-Logik Ihnen überlassen, Ihnen aber alle Werkzeuge an die Hand geben, die Sie zur Implementierung Ihrer eigenen Caching-Strategie benötigen.
+
+Sie können direkt über das page-Objekt von Playwright auf den DOM und den Accessibility Tree zugreifen. Hier ein Beispiel, wie Sie auf den Seiteninhalt zugreifen:
+
+<CodeGroup>
+```typescript TypeScript
+// Get the page content
+const pageContent = await page.content();
+```
+
+```python Python
+# Get the page content
+page_content = await page.content()
+```
+</CodeGroup>
+
+Sie können auch den Accessibility Tree, den DOM oder andere Informationen verwenden, um einen eindeutigeren Schlüssel zu erstellen. Das können Sie nach Belieben tun, mit einer sehr ähnlichen Logik wie im obigen Beispiel.

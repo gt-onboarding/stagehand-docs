@@ -1,0 +1,140 @@
+---
+title: act()
+description: "Vollständige API-Referenz für act()"
+icon: "arrow-pointer"
+---
+
+<CardGroup cols={1}>
+  <Card title="Act" icon="arrow-pointer" href="/de/basics/act">
+    Erfahren Sie, wie Sie mit act() Browseraktionen durchführen
+  </Card>
+</CardGroup>
+
+<div id="method-signatures">
+  ### Methodensignaturen
+</div>
+
+<Tabs>
+  <Tab title="TypeScript">
+    ```typescript
+    // Zeichenkettenanweisung
+    await page.act(instruction: string): Promise<ActResult>
+
+    // Mit ActOptions
+    await page.act(options: ActOptions): Promise<ActResult>
+
+    // Beobachtete Aktion ausführen
+    await page.act(observeResult: ObserveResult): Promise<ActResult>
+    ```
+
+    **ActOptions-Interface:**
+
+    ```typescript
+    interface ActOptions {
+      action: string;
+      modelName?: AvailableModel;
+      modelClientOptions?: ClientOptions;
+      variables?: Record<string, string>;
+      domSettleTimeoutMs?: number;
+      timeoutMs?: number;
+      iframes?: boolean;
+    }
+    ```
+  </Tab>
+
+  <Tab title="Python">
+    ```python
+    # Zeichenkettenanweisung
+    await page.act(instruction: str) -> ActResult
+
+    # Mit Parametern
+    await page.act(
+        instruction: str,
+        variables: Dict[str, str] = None,
+        dom_settle_timeout_ms: int = None,
+        timeout_ms: int = None,
+        model_name: AvailableModel = None,
+        model_client_options: Dict = None,
+        iframes: bool = None,
+    ) -> ActResult
+
+    # Beobachtete Aktion ausführen
+    await page.act(observe_result: ObserveResult) -> ActResult
+    ```
+  </Tab>
+</Tabs>
+
+<div id="parameters">
+  ### Parameter
+</div>
+
+<ParamField path="action" type="string" required>
+  Natürlichsprachige Beschreibung der auszuführenden Aktion.
+</ParamField>
+
+<ParamField path="variables" type="Record<string, string>" optional>
+  Schlüssel‑Wert‑Paare für die Variablenersetzung mit der `%variable%`‑Syntax. Verhindert, dass sensible Daten in Logs erscheinen.
+</ParamField>
+
+<ParamField path="modelName" type="AvailableModel" optional>
+  Überschreibt das Standard‑LLM‑Modell für diese Aktion.
+</ParamField>
+
+<ParamField path="modelClientOptions" type="ClientOptions" optional>
+  Modellspezifische Konfigurationsoptionen.
+
+  **Optionen:** `temperature`, `maxTokens`, `apiKey`
+</ParamField>
+
+<ParamField path="domSettleTimeoutMs" type="number" optional>
+  Maximale Wartezeit, bis sich der DOM stabilisiert, bevor die Aktion ausgeführt wird.
+
+  **Standard:** `30000`
+</ParamField>
+
+<ParamField path="timeoutMs" type="number" optional>
+  Maximale Wartezeit, bis die Aktion abgeschlossen ist.
+</ParamField>
+
+<ParamField path="iframes" type="boolean" optional>
+  Auf `true` setzen, wenn sich das Zielelement in einem iframe befindet.
+
+  **Standard:** `false`
+</ParamField>
+
+<ParamField path="observeResult" type="ObserveResult" optional>
+  Zuvor beobachtete Aktion, die direkt ausgeführt wird (ermöglicht Selbstheilung).
+</ParamField>
+
+<div id="returns-promiseactresult">
+  ### Gibt `Promise<ActResult>` zurück
+</div>
+
+<ParamField path="success" type="boolean" required>
+  Ob die Aktion erfolgreich abgeschlossen wurde.
+</ParamField>
+
+<ParamField path="message" type="string" required>
+  Details zur Ausführung der Aktion.
+</ParamField>
+
+<ParamField path="action" type="string" required>
+  Die ausgeführte Aktion.
+</ParamField>
+
+```Example Response
+{
+  success: true,
+  message: 'Action [scrollTo] performed successfully on selector: /html[1]',
+  action: 'Scrollable area of the page where user can navigate to the pricing section or other parts of the page'
+}
+```
+
+<div id="error-types">
+  ### Fehlertypen
+</div>
+
+- **TimeoutError** - Aktion hat das Zeitlimit überschritten
+- **ElementNotFoundError** - Zielelement konnte nicht gefunden werden
+- **ActionFailedError** - Aktion konnte nicht abgeschlossen werden
+- **StagehandError** - Allgemeine, Stagehand‑spezifische Fehler

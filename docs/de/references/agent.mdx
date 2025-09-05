@@ -1,0 +1,266 @@
+---
+title: agent()
+description: "Vollständige API-Referenz für die Methode agent()"
+icon: "robot"
+---
+
+<CardGroup cols={1}>
+  <Card title="Agent" icon="robot" href="/de/basics/agent">
+    Erfahren Sie, wie Sie mit agent() autonome KI‑Agenten für mehrstufige Browser-Workflows erstellen
+  </Card>
+</CardGroup>
+
+<div id="agent-creation">
+  ### Agent-Erstellung
+</div>
+
+<Tabs>
+  <Tab title="TypeScript">
+    ```typescript
+    // Agent-Instanz erstellen
+    const agent = stagehand.agent(config: AgentConfig): AgentInstance
+    ```
+
+    **AgentConfig-Schnittstelle:**
+
+    ```typescript
+    interface AgentConfig {
+      provider?: AgentProviderType;  // "openai" | "anthropic"
+      model?: string;
+      instructions?: string;
+      options?: Record<string, unknown>;
+      integrations?: (Client | string)[];
+      tools?: ToolSet;
+    }
+    ```
+
+    **AgentInstance-Schnittstelle:**
+
+    ```typescript
+    interface AgentInstance {
+      execute: (instructionOrOptions: string | AgentExecuteOptions) => Promise<AgentResult>;
+    }
+    ```
+  </Tab>
+
+  <Tab title="Python">
+    ```python
+    # Agent-Instanz erstellen
+    agent = stagehand.agent({
+        "model": str,
+        "instructions": str = None,
+        "options": Dict[str, Any] = None
+    })
+    ```
+  </Tab>
+</Tabs>
+
+<div id="agent-configuration">
+  ### Agent-Konfiguration
+</div>
+
+<ParamField path="provider" type="AgentProviderType" optional>
+  KI-Anbieter für die Agent-Funktionalität.
+
+  **Optionen:** `"anthropic"`, `"openai"`
+</ParamField>
+
+<ParamField path="model" type="string" optional>
+  Konkretes Modell für die Agent-Ausführung.
+
+  **Anthropic:** `"claude-sonnet-4-20250514"`, `"claude-3-5-sonnet-20241022"`
+
+  **OpenAI:** `"computer-use-preview"`, `"gpt-4o"`
+</ParamField>
+
+<ParamField path="instructions" type="string" optional>
+  Systemanweisungen, die das Verhalten des Agents definieren.
+</ParamField>
+
+<ParamField path="options" type="Record<string, unknown>" optional>
+  Anbieterspezifische Konfiguration.
+
+  **Üblich:** `apiKey`, `baseURL`, `organization`
+</ParamField>
+
+<ParamField path="integrations" type="(Client | string)[]" optional>
+  MCP (Model Context Protocol)-Integrationen für externe Tools und Dienste.
+
+  **Array aus:** MCP-Server-URLs (Strings) oder verbundenen Client-Objekten
+</ParamField>
+
+<ParamField path="tools" type="ToolSet" optional>
+  Benutzerdefinierte Tooldefinitionen zur Erweiterung der Agent-Funktionen.
+
+  **Format:** Objekt mit Toolnamen als Schlüsseln und Tooldefinitionen als Werten
+</ParamField>
+
+<div id="execute-method">
+  ### Execute-Methode
+</div>
+
+<Tabs>
+  <Tab title="TypeScript">
+    ```typescript
+    // Zeichenketten-Instruktion
+    await agent.execute(instruction: string): Promise<AgentResult>
+
+    // Mit Optionen
+    await agent.execute(options: AgentExecuteOptions): Promise<AgentResult>
+    ```
+
+    **AgentExecuteOptions-Interface:**
+
+    ```typescript
+    interface AgentExecuteOptions {
+      instruction: string;
+      maxSteps?: number;
+      autoScreenshot?: boolean;
+      waitBetweenActions?: number;
+      context?: string;
+    }
+    ```
+  </Tab>
+
+  <Tab title="Python">
+    ```python
+    # Zeichenketten-Instruktion
+    await agent.execute(instruction: str) -> AgentResult
+
+    # Mit Options-Dictionary
+    await agent.execute({
+        "instruction": str,
+        "max_steps": int = 20,
+        "auto_screenshot": bool = True,
+        "wait_between_actions": int = 0,
+        "context": str = None
+    }) -> AgentResult
+    ```
+  </Tab>
+</Tabs>
+
+<div id="execute-parameters">
+  ### Ausführungsparameter
+</div>
+
+<ParamField path="instruction" type="string" required>
+  Aufgabenbeschreibung auf hoher Ebene in natürlicher Sprache.
+</ParamField>
+
+<ParamField path="maxSteps" type="number" optional>
+  Maximale Anzahl von Aktionen, die der Agent ausführen kann.
+
+  **Standard:** `20`
+</ParamField>
+
+<ParamField path="autoScreenshot" type="boolean" optional>
+  Ob vor jeder Aktion Screenshots aufgenommen werden sollen.
+
+  **Standard:** `true`
+</ParamField>
+
+<ParamField path="waitBetweenActions" type="number" optional>
+  Verzögerung in Millisekunden zwischen Aktionen.
+
+  **Standard:** `0`
+</ParamField>
+
+<ParamField path="context" type="string" optional>
+  Zusätzlicher Kontext oder Einschränkungen für den Agenten.
+</ParamField>
+
+<div id="response">
+  ### Antwort
+</div>
+
+**Rückgabe:** `Promise<AgentResult>`
+
+**AgentResult-Schnittstelle:**
+
+```typescript
+interface AgentResult {
+  success: boolean;
+  message: string;
+  actions: AgentAction[];
+  completed: boolean;
+  metadata?: Record<string, unknown>;
+  usage?: {
+    input_tokens: number;
+    output_tokens: number;
+    inference_time_ms: number;
+  };
+}
+```
+
+<Tabs>
+  <Tab title="TypeScript">
+    <ParamField path="success" type="boolean">
+      Ob die Aufgabe erfolgreich abgeschlossen wurde.
+    </ParamField>
+
+    <ParamField path="message" type="string">
+      Beschreibung des Ausführungsergebnisses und -status.
+    </ParamField>
+
+    <ParamField path="actions" type="AgentAction[]">
+      Liste der einzelnen während der Ausführung vorgenommenen Aktionen.
+    </ParamField>
+
+    <ParamField path="completed" type="boolean">
+      Ob der Agent der Ansicht ist, dass die Aufgabe vollständig abgeschlossen ist.
+    </ParamField>
+
+    <ParamField path="metadata" type="Record<string, unknown>" optional>
+      Zusätzliche Ausführungsmetadaten und Debugging‑Informationen.
+    </ParamField>
+
+    <ParamField path="usage" type="object" optional>
+      Token‑Nutzung und Leistungskennzahlen.
+    </ParamField>
+  </Tab>
+
+  <Tab title="Python">
+    <ParamField path="success" type="boolean">
+      Ob die Aufgabe erfolgreich abgeschlossen wurde.
+    </ParamField>
+
+    <ParamField path="message" type="string">
+      Beschreibung des Ausführungsergebnisses und -status.
+    </ParamField>
+
+    <ParamField path="actions" type="AgentAction[]">
+      Liste der einzelnen während der Ausführung vorgenommenen Aktionen.
+    </ParamField>
+
+    <ParamField path="completed" type="boolean">
+      Ob der Agent der Ansicht ist, dass die Aufgabe vollständig abgeschlossen ist.
+    </ParamField>
+  </Tab>
+</Tabs>
+
+<div id="example-response">
+  ### Beispielantwort
+</div>
+
+```json
+{
+  "success": true,
+  "message": "Aufgabe erfolgreich abgeschlossen",
+  "actions": [
+    {
+      "action": "click",
+      "selector": "button.primary",
+      "text": "Submit"
+    }
+  ],
+  "completed": true,
+  "metadata": {
+    "execution_time": 1000
+  },
+  "usage": {
+    "input_tokens": 100,
+    "output_tokens": 50,
+    "inference_time_ms": 100
+  }
+}
+```

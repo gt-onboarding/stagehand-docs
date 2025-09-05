@@ -1,0 +1,321 @@
+---
+title: Logging & Debugging
+sidebarTitle: Logging
+description: Logging, Debugging und Fehlerverfolgung für Stagehand-Workflows einrichten
+---
+
+Stagehand bietet umfassende Logging-Funktionen, um Automatisierungs-Workflows zu debuggen, die Ausführung nachzuverfolgen und Probleme zu diagnostizieren. Konfigurieren Sie Log-Level, strukturierten Output und Debugging-Tools für Entwicklungs- und Produktionsumgebungen.
+
+<div id="logging-configuration">
+  ## Konfiguration der Protokollierung
+</div>
+
+<CodeGroup>
+```typescript TypeScript
+import { Stagehand } from "@browserbasehq/stagehand";
+
+const stagehand = new Stagehand({
+  env: "BROWSERBASE", // oder "LOCAL"
+  verbose: 1, // 0 = nur Fehler, 1 = Info, 2 = Debug
+});
+```
+
+```python Python
+from stagehand import Stagehand
+
+stagehand = Stagehand(
+    env="BROWSERBASE",  # oder "LOCAL"
+    verbose=1,  # 0 = nur Fehler, 1 = Info, 2 = Debug
+)
+```
+</CodeGroup>
+
+<div id="verbose-levels">
+  ### Ausführlichkeitsstufen
+</div>
+
+- **Stufe 0**: Nur Fehler – minimale Ausgabe für Produktionsumgebungen
+- **Stufe 1**: Info – umfasst erfolgreiche Aktionen und wichtige Ereignisse
+- **Stufe 2**: Debug – ausführliche Protokollierung einschließlich interner Vorgänge
+
+<div id="structured-logging">
+  ## Strukturierte Logs
+</div>
+
+<div id="log-line-format">
+  ### Format der Protokollzeile
+</div>
+
+Jeder Protokolleintrag enthält strukturierte Informationen:
+
+<CodeGroup>
+```typescript TypeScript
+interface LogLine {
+  category: 'browser' | 'action' | 'llm' | 'error' | 'stagehand' | 'cache';
+  message: string;
+  level: 0 | 1 | 2; // error | info | debug
+  timestamp: string;
+  auxiliary?: {
+    executionTime?: { value: string; unit: string };
+    sessionId?: string;
+    url?: string;
+    [key: string]: any;
+  };
+}
+```
+
+```python Python
+# Struktur einer Protokollzeile in Python
+{
+  "category": "browser" | "action" | "llm" | "error" | "stagehand" | "cache",
+  "message": str,
+  "level": 0 | 1 | 2,  # error | info | debug
+  "timestamp": str,
+  "auxiliary": {
+    "execution_time": {"value": str, "unit": str},
+    "session_id": str,
+    "url": str,
+    # ... weitere Kontextdaten
+  }
+}
+```
+</CodeGroup>
+
+<div id="custom-logger">
+  ### Eigener Logger
+</div>
+
+<CodeGroup>
+```typescript TypeScript
+class AdvancedLogger {
+  private logFile?: string;
+  
+  constructor(logFile?: string) {
+    this.logFile = logFile;
+  }
+  
+  log = (logLine: any) => {
+    const timestamp = new Date().toISOString();
+    const colors = {
+      browser: '\x1b[34m', // blau
+      action: '\x1b[32m',  // grün
+      llm: '\x1b[35m',     // magenta
+      error: '\x1b[31m',   // rot
+      stagehand: '\x1b[36m', // cyan
+      cache: '\x1b[33m',   // gelb
+    };
+    
+    const color = colors[logLine.category] || '\x1b[0m';
+    const reset = '\x1b[0m';
+    
+    // Konsolenausgabe mit Farben
+    console.log(`${color}[${logLine.category}]${reset} ${logLine.message}`);
+    
+    // Ausführungszeit protokollieren, falls vorhanden
+    if (logLine.auxiliary?.executionTime) {
+      console.log(` ${logLine.auxiliary.executionTime.value}${logLine.auxiliary.executionTime.unit}`);
+    }
+    
+    // Zusätzlichen Kontext protokollieren
+    if (logLine.auxiliary && Object.keys(logLine.auxiliary).length > 0) {
+      console.log('  Kontext:', JSON.stringify(logLine.auxiliary, null, 2));
+    }
+    
+    // Protokollierung in Datei (optional)
+    if (this.logFile) {
+      const logEntry = {
+        timestamp,
+        ...logLine
+      };
+      require('fs').appendFileSync(this.logFile, JSON.stringify(logEntry) + '\n');
+    }
+  }
+}
+
+// Verwendung
+const logger = new AdvancedLogger('./automation.log');
+const stagehand = new Stagehand({
+  env: "BROWSERBASE",
+  verbose: 2,
+  logger: logger.log
+});
+```
+
+```python Python
+import json
+import os
+from datetime import datetime
+from typing import Dict, Any, Optional
+
+class AdvancedLogger:
+    def __init__(self, log_file: Optional[str] = None):
+        self.log_file = log_file
+    
+    def log(self, log_line: Dict[str, Any]):
+        timestamp = datetime.now().isoformat()
+        colors = {
+            'browser': '\033[34m',   # blau
+            'action': '\033[32m',    # grün
+            'llm': '\033[35m',       # magenta
+            'error': '\033[31m',     # rot
+            'stagehand': '\033[36m', # cyan
+            'cache': '\033[33m',     # gelb
+        }
+        
+        color = colors.get(log_line.get('category', ''), '\033[0m')
+        reset = '\033[0m'
+        
+        // Konsolenausgabe mit Farben
+        print(f"{color}[{log_line.get('category')}]{reset} {log_line.get('message')}")
+        
+        // Ausführungszeit protokollieren, falls vorhanden
+        if log_line.get('auxiliary', {}).get('execution_time'):
+            exec_time = log_line['auxiliary']['execution_time']
+            print(f"{exec_time['value']}{exec_time['unit']}")
+        
+        // Zusätzlichen Kontext protokollieren
+        auxiliary = log_line.get('auxiliary', {})
+        if auxiliary and len(auxiliary) > 0:
+            print('  Kontext:', json.dumps(auxiliary, indent=2))
+        
+        // Protokollierung in Datei (optional)
+        if self.log_file:
+            log_entry = {
+                'timestamp': timestamp,
+                **log_line
+            }
+            with open(self.log_file, 'a') as f:
+                f.write(json.dumps(log_entry) + '\n')
+
+# Verwendung
+logger = AdvancedLogger('./automation.log')
+stagehand = Stagehand(
+    env="BROWSERBASE",
+    verbose=2,
+    logger=logger.log
+)
+```
+</CodeGroup>
+
+<div id="detailed-logging-features">
+  ## Erweiterte Protokollierungsfunktionen
+</div>
+
+<div id="llm-inference-logging">
+  ### LLM-Inferenzprotokollierung
+</div>
+
+Ausführliches Logging aller LLM-Interaktionen aktivieren:
+
+<CodeGroup>
+```typescript TypeScript
+const stagehand = new Stagehand({
+  env: "BROWSERBASE",
+  logInferenceToFile: true,  // Erstellt das Verzeichnis inference_summary/
+  verbose: 2
+});
+```
+
+```python Python
+stagehand = Stagehand(
+    env="BROWSERBASE",
+    log_inference_to_file=True,  # Erstellt das Verzeichnis inference_summary/
+    verbose=2
+)
+```
+</CodeGroup>
+
+Verzeichnisstruktur von `inference_summary/`:
+
+```
+inference_summary/                   
+├── act_summary/            
+│   ├── 20240329_080446068.json    
+│   ├── 20240329_080447019.json   
+│   └── act_summary.json          
+├── extract_summary/               
+│   ├── 20240329_081205123.json    
+│   └── extract_summary.json       
+└── observe_summary/                
+    ├── 20240329_081634891.json    
+    └── observe_summary.json       
+```
+
+<div id="log-analysis-debugging">
+  ## Protokollanalyse & Debugging
+</div>
+
+<div id="common-log-patterns">
+  ### Häufige Logmuster
+</div>
+
+<Tabs>
+  <Tab title="Erfolgreiche Aktion">
+    ```json
+    {
+      "category": "action", 
+      "message": "act completed successfully",
+      "level": 1,
+      "auxiliary": {
+        "executionTime": {"value": "1250", "unit": "ms"},
+        "url": "https://example.com",
+        "sessionId": "session-123"
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="LLM-Inferenz">
+    ```json
+    {
+      "category": "llm",
+      "message": "inference completed", 
+      "level": 1,
+      "auxiliary": {
+        "model": "gpt-4o",
+        "tokens": {"prompt": 3451, "completion": 45},
+        "executionTime": {"value": "951", "unit": "ms"}
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Fehlerbeispiel">
+    ```json
+    {
+      "category": "action",
+      "message": "action failed: element not found",
+      "level": 0, 
+      "auxiliary": {
+        "selector": "button[data-testid='submit']",
+        "url": "https://example.com/form",
+        "sessionId": "session-123"
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<div id="best-practices">
+  ## Best Practices
+</div>
+
+<AccordionGroup>
+<Accordion title="Entwicklungsumgebung">
+- Verwende `verbose: 2` mit visueller Debug-Ansicht
+- Aktiviere die Browser-DevTools zur Elementinspektion
+- Setze `logInferenceToFile: true`, um LLM-Entscheidungen aufzuzeichnen
+- Führe frühzeitig strukturiertes Logging ein
+</Accordion>
+
+<Accordion title="Produktionsumgebung">
+- Verwende `verbose: 1`, um Sichtbarkeit und Performance auszubalancieren
+- Implementiere Error-Tracking und Alerting
+- Nutze strukturiertes JSON-Logging
+- Überwache Erfolgsraten von Sitzungen und Ausführungszeiten
+</Accordion>
+
+<Accordion title="Sicherheit & Compliance">
+- Protokolliere niemals Anmeldedaten oder andere sensible Informationen
+- Implementiere Richtlinien zur Aufbewahrung von Logs
+- Schütze Logdateien und Dashboards
+</Accordion>
+</AccordionGroup>

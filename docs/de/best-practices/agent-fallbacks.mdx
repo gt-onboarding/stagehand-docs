@@ -1,0 +1,79 @@
+---
+title: Agent-Fallbacks
+description: "Eine Absicherung für den Fall, dass unerwartete Seitenänderungen zusätzliche Schritte erfordern"
+---
+
+<div id="when-to-use">
+  ## Wann verwenden
+</div>
+
+Verwenden Sie einen Agent‑Fallback als Fail‑Safe, wenn eine Ein‑Schritt‑Aktion unerwartet zu einem mehrstufigen Ablauf wird.
+
+<div id="how-it-works">
+  ## So funktioniert es
+</div>
+
+1. [`act()`](/de/basics/act) wird für die direkte Aktion ausgeführt
+2. Wenn das fehlschlägt, legt [`agent()`](/de/basics/agent) den neuen Weg fest
+3. Der Agent erledigt alle erforderlichen Schritte (Menü öffnen → Button klicken)
+
+<div id="example-scenario">
+  ### Beispielszenario
+</div>
+
+**Vorher**: Der Button „Sign In“ befand sich in der Kopfzeile\
+**Nachher**: „Sign In“ erfordert jetzt: Kontomenü öffnen → Option „Sign In“ anklicken
+
+Ein einzelnes `act("click sign in")` kann diese Änderung nicht abbilden. Der Agent‑Fallback kann beide Schritte erkennen und ausführen.
+
+<CodeGroup>
+  ```typescript TypeScript
+  import { Stagehand } from "@browserbasehq/stagehand";
+
+  try {
+    await page.act("click the 'Sign In' button");
+  } catch (err) {
+    console.log("Agent fallback triggered");
+
+    const agent = stagehand.agent({
+      provider: "anthropic",
+      model: "claude-sonnet-4-20250514",
+      instructions: "You are a helpful assistant that can use a web browser.",
+    });
+
+    const result = await agent.execute({
+      instruction: "Find and click Sign In button",
+      maxSteps: 10,
+    });
+
+    console.log(result.success ? "Agent fallback success" : "Agent fallback failed");
+
+    if (!result.success) throw err;
+  }
+  ```
+
+  ```python Python
+  from stagehand import Stagehand
+
+  try:
+      await page.act("click the 'Sign In' button")
+  except Exception as err:
+      print("Agent fallback triggered")
+
+      agent = stagehand.agent({
+          "provider": "anthropic",
+          "model": "claude-sonnet-4-20250514",
+          "instructions": "Complete the action, handling any new steps required.",
+      })
+
+      result = await agent.execute({
+          "instruction": "Find and click Sign In button",
+          "max_steps": 10,
+      })
+
+      print("Agent fallback success" if result.success else "Agent fallback failed")
+
+      if not result.success:
+          raise err
+  ```
+</CodeGroup>

@@ -1,0 +1,252 @@
+---
+title: "LangChain JS‑Konfiguration"
+sidebarTitle: Konfiguration
+description: "Stagehand mit LangChain JS einrichten, um intelligente Web‑Automations‑Agenten zu erstellen"
+---
+
+Diese Anleitung führt Sie durch die Integration von Stagehand mit LangChain JS, um leistungsstarke Web‑Automations‑Workflows mit natürlichsprachlichen Anweisungen zu erstellen.
+
+<div id="step-1-install-dependencies">
+  ## Schritt 1: Abhängigkeiten installieren
+</div>
+
+Installieren Sie die erforderlichen Pakete für die Integration von LangChain JS und Stagehand:
+
+```bash
+npm install @langchain/langgraph @langchain/community @langchain/core @browserbasehq/stagehand
+```
+
+<div id="step-2-configure-environment-variables">
+  ## Schritt 2: Umgebungsvariablen konfigurieren
+</div>
+
+Für die Remote‑Browserautomatisierung richten Sie Ihre Browserbase‑Zugangsdaten ein:
+
+```bash
+BROWSERBASE_API_KEY="your-browserbase-api-key"
+BROWSERBASE_PROJECT_ID="your-browserbase-project-id"
+```
+
+<div id="step-3-create-a-stagehand-instance">
+  ## Schritt 3: Stagehand-Instanz erstellen
+</div>
+
+Initialisieren Sie Stagehand mit Ihrer bevorzugten Konfiguration:
+
+```typescript
+import { Stagehand } from "@browserbasehq/stagehand";
+
+// Für die lokale Entwicklung
+const stagehand = new Stagehand({
+    env: "LOCAL",
+    verbose: 2,
+    enableCaching: false,
+});
+
+// Für die Produktion mit Browserbase
+const stagehand = new Stagehand({
+    env: "BROWSERBASE",
+    verbose: 1,
+    enableCaching: true,
+});
+```
+
+<div id="step-4-generate-the-stagehandtoolkit">
+  ## Schritt 4: StagehandToolkit erstellen
+</div>
+
+Erstelle das Toolkit, das LangChain‑kompatible Tools bereitstellt:
+
+```typescript
+import { StagehandToolkit } from '@langchain/community/tools/stagehand';
+
+const stagehandToolkit = await StagehandToolkit.fromStagehand(stagehand);
+```
+
+<div id="step-5-use-individual-tools">
+  ## Schritt 5: Einzelne Tools verwenden
+</div>
+
+Das Toolkit stellt vier spezialisierte Tools für Webautomatisierung bereit:
+
+<div id="available-tools">
+  ### Verfügbare Tools
+</div>
+
+- **stagehand_navigate**: Zu bestimmten URLs navigieren
+- **stagehand_act**: Browseraktionen ausführen (Klicken, Eingaben, usw.)
+- **stagehand_extract**: Strukturierte Daten anhand von Schemas extrahieren  
+- **stagehand_observe**: Seitenelemente und mögliche Aktionen analysieren
+
+<div id="basic-tool-usage">
+  ### Grundlegende Tool‑Nutzung
+</div>
+
+```typescript
+// Zu einer Website navigieren
+const navigateTool = stagehandToolkit.tools.find(
+    (t) => t.name === "stagehand_navigate"
+);
+await navigateTool.invoke("https://www.google.com");
+
+// Eine Aktion ausführen
+const actionTool = stagehandToolkit.tools.find(
+    (t) => t.name === "stagehand_act"
+);
+await actionTool.invoke('Search for "OpenAI"');
+
+// Die Seite beobachten
+const observeTool = stagehandToolkit.tools.find(
+    (t) => t.name === "stagehand_observe"
+);
+const result = await observeTool.invoke(
+    "Welche Aktionen können auf der aktuellen Seite ausgeführt werden?"
+);
+console.log(JSON.parse(result));
+```
+
+<div id="step-6-build-langgraph-agents">
+  ## Schritt 6: LangGraph‑Agents erstellen
+</div>
+
+Integriere LangGraph für komplexe Automatisierungs‑Workflows:
+
+```typescript
+npm install @langchain/langgraph @langchain/community @langchain/core @langchain/openai @browserbasehq/stagehand
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
+
+// Ein LLM erstellen
+const llm = new ChatOpenAI({
+    model: "gpt-4",
+    temperature: 0,
+});
+
+// Einen Agent mit Stagehand‑Tools erstellen
+const agent = createReactAgent({
+    llm,
+    tools: stagehandToolkit.tools,
+});
+
+// Einen komplexen Workflow ausführen
+const result = await agent.invoke({
+    messages: [
+        {
+            role: "user", 
+            content: "Gehe zu example.com, finde das Kontaktformular und extrahiere alle Formularfelder"
+        }
+    ]
+});
+```
+
+<div id="advanced-configuration">
+  ## Erweiterte Konfiguration
+</div>
+
+<div id="custom-stagehand-configuration">
+  ### Benutzerdefinierte Stagehand-Konfiguration
+</div>
+
+```typescript
+const stagehand = new Stagehand({
+    env: "BROWSERBASE",
+    verbose: 2,
+    enableCaching: true,
+    headless: true,
+    domSettleTimeoutMs: 5000,
+});
+```
+
+<div id="error-handling">
+  ### Fehlerbehandlung
+</div>
+
+```typescript
+try {
+    const result = await agent.invoke({
+        messages: [{ role: "user", content: "Navigate to invalid-url.com" }]
+    });
+} catch (error) {
+    console.error("Automatisierung fehlgeschlagen:", error);
+} finally {
+    // Ressourcen aufräumen
+    await stagehand.close();
+}
+```
+
+<div id="example-workflows">
+  ## Beispiel-Workflows
+</div>
+
+<Tabs>
+  <Tab title="Datenextraktion" value="data-extraction" label="TypeScript">
+    ```typescript
+    const extractionAgent = createReactAgent({
+        llm,
+        tools: stagehandToolkit.tools,
+    });
+
+    const result = await extractionAgent.invoke({
+        messages: [{
+            role: "user",
+            content: `
+                Öffne news-website.com und extrahiere:
+                1. Alle Artikelüberschriften
+                2. Veröffentlichungsdaten
+                3. Autorennamen
+                Formatiere die Ausgabe als strukturiertes JSON
+            `
+        }]
+    });
+    ```
+  </Tab>
+  <Tab title="Formularautomatisierung" value="form-automation" label="TypeScript">
+    ```typescript
+    const formAgent = createReactAgent({
+        llm,
+        tools: stagehandToolkit.tools,
+    });
+
+    const result = await formAgent.invoke({
+        messages: [{
+            role: "user", 
+            content: `
+                Navigiere zu contact-form.com und:
+                1. Fülle das Kontaktformular aus mit:
+                   - Name: John Doe
+                   - E-Mail: john@example.com
+                   - Nachricht: Anfrage zu Dienstleistungen
+                2. Sende das Formular ab
+                3. Bestätige den erfolgreichen Versand
+            `
+        }]
+    });
+    ```
+  </Tab>
+  <Tab title="Recherche auf mehreren Websites" value="multi-site-research" label="TypeScript">
+    ```typescript
+    const researchAgent = createReactAgent({
+        llm,
+        tools: stagehandToolkit.tools,
+    });
+
+    const result = await researchAgent.invoke({
+        messages: [{
+            role: "user",
+            content: `
+                Recherchiere Produktpreise, indem du:
+                1. competitor1.com besuchst und Preisinformationen extrahierst
+                2. competitor2.com besuchst und Preisinformationen extrahierst
+                3. Funktionen und Preise vergleichst
+                4. Eine zusammenfassende Analyse bereitstellst
+            `
+        }]
+    });
+    ```
+  </Tab>
+</Tabs>
+
+<CardGroup cols={1}>
+  <Card title="LangChain JS-Dokumentation" icon="book" href="https://js.langchain.com/docs/integrations/tools/stagehand/">
+    Offizielle LangChain JS-Dokumentation zur Stagehand-Integration
+  </Card>
+</CardGroup>

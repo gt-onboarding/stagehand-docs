@@ -1,0 +1,295 @@
+---
+title: observe()
+sidebarTitle: observe()
+description: "Vorgeschlagene Aktionen für deine Workflows finden"
+---
+
+<div id="what-is-observe">
+  ## Was ist `observe()`?
+</div>
+
+```typescript
+page.observe("Find the login button")
+```
+
+`observe` ermöglicht, jede Seite in eine Checkliste verlässlicher, ausführbarer Aktionen zu verwandeln. Es erkennt zentrale Elemente, priorisiert die wahrscheinlich nächsten Schritte und gibt strukturierte Aktionen (selector, method, args) zurück, die Sie sofort mit `act` ausführen oder nutzen können, um `extract` gezielt anzusteuern – so werden Workflows schneller, günstiger und widerstandsfähiger.
+
+<div id="why-use-observe">
+  ## Warum `observe()` verwenden?
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Explore" icon="compass" href="/de/basics/observe#observe-with-act">
+    Wenn Sie unsicher sind, was auf einer Seite steht, oder verfügbare Aktionen erkunden möchten
+  </Card>
+
+  <Card title="Plan" icon="map" href="/de/basics/observe#plan-ahead">
+    Planen Sie bei komplexen Workflows im Voraus alle erforderlichen Aktionen
+  </Card>
+
+  <Card title="Cache" icon="database" href="/de/best-practices/caching">
+    Wenn Sie Aktionen für später zwischenspeichern und LLM‑Aufrufe vermeiden möchten
+  </Card>
+
+  <Card title="Validate" icon="check" href="/de/basics/observe#observe-with-act">
+    Bevor Sie kritische Aktionen ausführen, um sicherzustellen, dass Elemente vorhanden sind
+  </Card>
+</CardGroup>
+
+<div id="using-observe">
+  ## Verwendung von `observe()`
+</div>
+
+Der Aufruf von `observe` verstärkt andere Stagehand-Methoden. Nutze es, um Workflows zu planen, `act` zu beschleunigen und `extract` gezielt einzusetzen. Mit `observe` kannst du erkunden, was auf einer Seite möglich ist, da es dir eine Liste vorgeschlagener Aktionen liefert.
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Planen & Validieren
+  const buttons = await page.observe("Find the log in / sign up buttons");
+  ```
+
+  ```python Python
+  # Planen & Validieren
+  buttons = await page.observe("Find the log in / sign up buttons")
+  ```
+</CodeGroup>
+
+Dies gibt eine Liste von Vorschlägen mit der folgenden Struktur zurück:
+
+```json
+{
+  "selector": "xpath=/html/body/header/div/button[1]",
+  "description": "Log-in-Button in der oberen rechten Ecke",
+  "method": "click",
+  "arguments": []
+}
+```
+
+<div id="observe-with-act">
+  ### Observe mit Act
+</div>
+
+Sie können die Aktion (Methode, Selektor, Argumente …) **prüfen** und sie dann an `act` übergeben, um **zusätzliche LLM-Inferenz zu vermeiden**.
+
+<Note>
+  **Performance-Tipp**: Das Ausführen mehrerer `observe`-Vorschläge minimiert die Anzahl der LLM-Aufrufe bei mehrstufigen Aktionen und beschleunigt Ihren Workflow um das 2–3‑Fache.
+</Note>
+
+<CodeGroup>
+  ```typescript TypeScript
+  await page.act(buttons[0]); // No LLM!
+  ```
+
+  ```python Python
+  await page.act(buttons[0]) # No LLM!
+  ```
+</CodeGroup>
+
+<div id="plan-ahead">
+  #### Vorausplanen
+</div>
+
+Sie können mehrere Vorschläge von `observe` nutzen, um eine Reihe von Aktionen vorab zu planen. Wenn Sie beispielsweise ein Formular ausfüllen, können Sie `observe` anweisen, alle Felder zu finden, und diese anschließend an `act` übergeben. **LLM einmal aufrufen, mehrfach ausführen**.
+
+<CodeGroup>
+  ```typescript TypeScript
+  const fields = await page.observe("Find all the fields in the form");
+  for (const field of fields) {
+    await page.act(field); // No LLM!
+  }
+  ```
+
+  ```python Python
+  fields = await page.observe("Find all the fields in the form")
+  for field in fields:
+    await page.act(field) # No LLM!
+  ```
+</CodeGroup>
+
+<div id="observe-and-extract">
+  ### Beobachten und Extrahieren
+</div>
+
+Wenn Sie `observe` verwenden, um `extract` auf einen bestimmten Abschnitt der Seite zu fokussieren (z. B. eine Tabelle, ein Formular, eine Liste …), wird der für die Extraktion benötigte Kontext minimiert.
+
+<Tip>
+  **Spar-Tipp**: Übergeben Sie den Selektor an `extract`, um den LLM-Tokenverbrauch bei sehr umfangreichen Websites um den Faktor 10 zu reduzieren!
+</Tip>
+
+<CodeGroup>
+  ```typescript TypeScript
+  // Verwenden Sie observe, um Elemente vor der Extraktion zu validieren
+  const [ table ] = await page.observe("Find the data table");
+
+  const { data } = await page.extract({
+    instruction: "Extract data from the table",
+    schema: z.object({
+      data: z.string()
+    }),
+    selector: table.selector // Verringert den benötigten Kontextumfang für die Extraktion
+  });
+  ```
+
+  ```python Python
+  # Verwenden Sie observe, um Elemente vor der Extraktion zu validieren
+  [ table ] = await page.observe("Find the data table")
+
+  extraction = await page.extract(
+    "Extract data from the table",
+    schema=Data, # Pydantic-Schema
+    selector=table.selector # Verringert den benötigten Kontextumfang für die Extraktion
+  )
+  ```
+</CodeGroup>
+
+<div id="best-practices">
+  ## Bewährte Praktiken
+</div>
+
+<div id="choose-the-right-commands">
+  ### Die richtigen Befehle wählen
+</div>
+
+<Tabs>
+  <Tab title="So geht’s">
+    - Verwenden Sie `observe`, wenn eine Ja/Nein-Antwort eine Aktion steuern soll (z. B. „Find the Submit button“), und führen Sie dann bei Bedarf `act` aus.
+    - Verwenden Sie `extract` für reine Informationsfragen (z. B. „What’s the page title?“, „How many results are listed?“).
+  </Tab>
+
+  <Tab title="So nicht">
+    - Verwenden Sie `extract` nicht, um Elemente zu finden, auf die Sie anschließend klicken möchten.
+    - Verwenden Sie `observe` nicht, um reine Informationsfragen zu beantworten, die nicht zu einer Aktion führen.
+  </Tab>
+</Tabs>
+
+- **Mit `observe` erkunden und planen**: Verwenden Sie `observe("Find…")`, um umsetzbare Elemente zu erfassen und nächste Schritte vorzuplanen.
+- **`extract` mit Selektoren aus `observe` eingrenzen**: Zuerst `observe("Find the data table")`, dann `selector` an `extract` übergeben, um Token zu sparen und die Genauigkeit zu erhöhen.
+
+<div id="conserve-llm-tokens">
+  ### LLM‑Tokens sparen
+</div>
+
+Optimiere die Performance, indem du `ObserveResult` direkt an `act` übergibst (z. B. `await page.act(results[0])`), um LLM‑Tokens zu sparen. Bündle Operationen, indem du `observe` einmal nutzt, um Elemente zu finden, und dann jeweils darauf agierst. Cache stabile `observe`‑Ergebnisse für vertraute Seiten und verwende sie wieder; setze auf Selbstheilung, wenn sich Layouts ändern.
+
+<Card title="Erstelle deinen eigenen Cache" icon="database" href="/de/best-practices/caching">
+  Sieh dir die Anleitung an, wie du einen eigenen Aktions‑Cache erstellst
+</Card>
+
+<div id="improve-accuracy">
+  ### Genauigkeit verbessern
+</div>
+
+Formulieren Sie Anweisungen präzise, z. B. „Finde den primären CTA im Hero“, um bessere Ergebnisse zu erzielen. Für iframes setzen Sie `iframes: true` und warten Sie auf `networkidle`. Verwenden Sie `observe`‑Selektoren in `extract`, um den Kontext einzugrenzen.
+
+<Card title="Prompting Best Practices" icon="robot" href="/de/best-practices/prompting-best-practices">
+  Lesen Sie den Leitfaden, wie Sie die Genauigkeit Ihrer Ergebnisse verbessern
+</Card>
+
+<div id="action-validation">
+  ### Validierung von Aktionen
+</div>
+
+Validieren Sie vor dem Ausführen kritischer Aktionen die `method`, den `selector` und die `arguments` des Vorschlags, um Fehlklicks zu verhindern. Wenn ein direktes `act` fehlschlägt, verwenden Sie `observe` mit demselben Prompt, um die Methode zu verifizieren, und führen Sie anschließend die vorgeschlagene Aktion aus.
+
+<CodeGroup>
+  ```typescript TypeScript
+  const prompt = "click the submit button";
+  const expectedMethod = "click";
+
+  try {
+    await page.act(prompt);
+  } catch (error) {
+    if (error.message.includes("method not supported")) {
+      // Beobachten Sie denselben Prompt, um die geplante Aktion zu ermitteln
+      const [action] = await page.observe(prompt);
+      
+      if (action && action.method === expectedMethod) {
+        await page.act(action);
+      } else {
+        throw new Error(`Unsupported method: expected "${expectedMethod}", got "${action?.method}"`);
+      }
+    } else {
+      throw error;
+    }
+  }
+  ```
+
+  ```python Python
+  prompt = "click the submit button"
+  expected_method = "click"
+
+  try:
+      await page.act(prompt)
+  except Exception as error:
+      if "method not supported" in str(error):
+          # Beobachten Sie denselben Prompt, um die geplante Aktion zu ermitteln
+          results = await page.observe(prompt)
+          
+          if results and results[0].method == expected_method:
+              await page.act(results[0])
+          else:
+              method = results[0].method if results else "unknown"
+              raise Exception(f'Unsupported method: expected "{expected_method}", got "{method}"')
+      else:
+          raise error
+  ```
+</CodeGroup>
+
+<div id="troubleshooting">
+  ## Fehlerbehebung
+</div>
+
+<AccordionGroup>
+  <Accordion title="Keine Elemente gefunden">
+    **Problem**: `observe` gibt ein leeres Array zurück
+
+    **Lösungen**:
+
+    - Stellen Sie sicher, dass das Element auf der Seite vorhanden ist
+    - Geben Sie präzise Anweisungen, um das Element zu finden
+    - Vergewissern Sie sich, dass die Seite vollständig geladen ist
+    - Prüfen Sie die Protokolle der [Debugging-Workflows](/de/best-practices/debugging-workflows); wenn das Element vorhanden ist, könnte das LLM halluzinieren bzw. es nicht erkennen.
+  </Accordion>
+
+  <Accordion title="Ungenaue Elementbeschreibungen">
+    **Problem**: Beschreibungen stimmen nicht mit den tatsächlichen Elementen überein
+
+    **Lösungen**:
+
+    - Verwenden Sie leistungsfähigere Modelle: Sehen Sie in den [Evals](https://stagehand.dev/evals) nach, welche Modelle sich am besten für Ihren Anwendungsfall eignen
+    - Geben Sie spezifischere Anweisungen
+    - Protokollieren Sie die Inferenz in eine Datei (siehe [Debugging-Workflows](/de/best-practices/debugging-workflows)), um einen LLM-Trace zu erhalten
+  </Accordion>
+
+  <Accordion title="Falsche Methode identifiziert">
+    **Problem**: Die identifizierte Methode ist nicht gültig
+
+    **Lösungen**:
+
+    - Prüfen Sie die [unterstützten Aktionen](/de/basics/act)
+    - Geben Sie spezifischere Anweisungen
+    - Validieren Sie die Methode; wenn sie ungültig ist, überschreiben Sie sie mit einer der unterstützten Methoden
+  </Accordion>
+</AccordionGroup>
+
+<div id="next-steps">
+  ## Nächste Schritte
+</div>
+
+<CardGroup cols={2}>
+  <Card title="Act-Übersicht" icon="play" href="/de/basics/act">
+    Aktionen effizient mithilfe von `observe`-Ergebnissen ausführen
+  </Card>
+
+  <Card title="Daten extrahieren" icon="download" href="/de/basics/extract">
+    Strukturierte Daten aus beobachteten Elementen extrahieren
+  </Card>
+
+  <Card title="Observability" icon="chart-line" href="/de/configuration/observability">
+    Beobachtungsleistung überwachen und debuggen
+  </Card>
+
+  <Card title="Best Practices" icon="star" href="/de/best-practices/best-practices">
+    Fortgeschrittene Muster und Optimierungstechniken
+  </Card>
+</CardGroup>
